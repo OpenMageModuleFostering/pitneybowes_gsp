@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.2.0)
- * Packaged:      2015-10-01T12:11:15+00:00
- * Last Modified: 2015-09-14T12:11:20+00:00
+ * Product:       Pb_Pbgsp (1.2.1)
+ * Packaged:      2015-10-07T12:08:45+00:00
+ * Last Modified: 2015-10-01T12:11:15+00:00
+
 
 
 
@@ -290,9 +291,21 @@ class Pb_Pbgsp_Model_Api
 			$number=$tracks[0]->getNumber();
 			$title = $tracks[0]->getTitle();
 		}else{
-			$number = '123456';
+			$number = $cpOrderNumber;
 			$title = 'PB';
+			
+			// add the tracking info magento
+			$track = Mage::getModel('sales/order_shipment_track')
+							 ->setShipment($shipment)
+							 ->setData('title', 'PB')
+							 ->setData('number',$cpOrderNumber)
+							 ->setData('carrier_code', 'custom')
+							 ->setData('order_id', $shipment->getData('order_id'))
+							 ->save();
 		}
+		
+		
+										 
         $requestBody = array(
             'merchantOrderNumber' => $cpOrderNumber,
             'parcelIdentificationNumber' => $number,

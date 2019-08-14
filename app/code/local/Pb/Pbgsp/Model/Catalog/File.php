@@ -1,9 +1,10 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.2.0)
- * Packaged:      2015-10-01T12:11:15+00:00
- * Last Modified: 2015-09-14T12:11:20+00:00
+ * Product:       Pb_Pbgsp (1.2.1)
+ * Packaged:      2015-10-07T12:08:45+00:00
+ * Last Modified: 2015-10-01T12:11:15+00:00
+
 
 
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/File.php
@@ -179,7 +180,8 @@ class Pb_Pbgsp_Model_Catalog_File {
             }
         }
 
-        fclose($this->file);
+        if($this->file)
+            fclose($this->file);
         $this->_stripPartFromFileName($part);
         //fwrite($this->file,"</CategoryList>\n<CommodityList>\n");
         if(count($this->uploadedCategories) == 0) {
@@ -212,6 +214,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                     ->addAttributeToSelect('description')
                     ->addAttributeToSelect('product_url')
                     ->addAttributeToSelect('type_id')
+                    ->addAttributeToSelect('url_in_store')
                     ->addAttributeToSelect('pb_pbgsp_upload')
                     ->addAttributeToSelect('updated_at')
                     // ->addUrlRewrite($category->getId()) //this will add the url rewrite.

@@ -32,6 +32,18 @@ In order to take advantage of the file encryption setting in the extension confi
 CHANGELOG
 ========================================================
 
+v. 1.2.1
+
+Added logic in extension preferences to change API URL values dynamically from Sandbox to Production
+Small adjustment to catalog product URL to use $product->getUrlInStore() .
+
+Add required logic to ensure that the ASN generation logic is triggered no matter the method of shipment creation (manual or programmatically).
+
+Fixed an error when the tracking number was not provided for the order.
+
+Added backwards compatibility to CE 1.7.x+ and Enterprise 1.8.x
+
+
 v. 1.2.0
 
 Add config option to override domestic shipping address with PB HUB address. When active the PB domestic HUB address will overwrite the customer shipping address for the order. The customer shipping address is stored with PB and also added to the order details for record keeping.
