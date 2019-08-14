@@ -1,4 +1,11 @@
 <?php
+/**
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Model/Observer.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ */
 class Pb_Pbgsp_Model_Observer {
  const MODULE_NAME = 'Pb_Pbgsp';
 	public function __construct() {
@@ -15,7 +22,16 @@ class Pb_Pbgsp_Model_Observer {
 
 	}
 
-
+    public function productLoadAfter($observer) {
+        $event = $observer->getEvent();
+        $product = $event->getProduct();
+        $product->lockAttribute('pb_pbgsp_upload');
+    }
+    public function categoryLoadAfter($observer) {
+        $event = $observer->getEvent();
+        $category = $event->getCategory();
+        $category->lockAttribute('pb_pbgsp_upload');
+    }
 	public function getShipMethod($observer) {
         Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.getShipMethod');
 		$shipMethod = $observer->getQuote()->getShippingAddress()->getShippingMethod();
@@ -128,7 +144,10 @@ class Pb_Pbgsp_Model_Observer {
 				Mage::throwException("Unable to create Pb order.");
 			}
 
-			Mage::getSingleton("customer/session")->setPbDutyAndTax($order['order']['totalImportation']['total']['value']);
+            $tax = $order['order']['totalImportation']['total']['value'];
+            if(Pb_Pbgsp_Model_Credentials::isFreeTaxEnabled())
+                $tax = 0;
+            Mage::getSingleton("customer/session")->setPbDutyAndTax($tax);
 
             $orderNumber = Mage::getModel("pb_pbgsp/ordernumber");
 
@@ -138,6 +157,7 @@ class Pb_Pbgsp_Model_Observer {
             $orderNumber->setHubStreet2($order["shipToHub"]['hubAddress']['street2']);
             $orderNumber->setHubProvinceOrState($order["shipToHub"]['hubAddress']['provinceOrState']);
             $orderNumber->setHubCountry($order["shipToHub"]['hubAddress']['country']);
+            $orderNumber->setHubPostalCode($order["shipToHub"]['hubAddress']['postalOrZipCode']);
 
 			Mage::getSingleton("customer/session")->setPbOrderNumber($orderNumber);
 		} else {
@@ -198,10 +218,10 @@ class Pb_Pbgsp_Model_Observer {
                               <span>".$cpOrderNumber->getHubStreet1()."</span><br/>
                               <strong>Hub Street 2</strong>
                               <span>".$cpOrderNumber->getHubStreet2()."</span><br/>
+                              <strong>Postal Code</strong>
+                              <span>".$cpOrderNumber->getHubPostalCode()."</span><br/>
                                <strong>Hub Province/State</strong>
                               <span>".$cpOrderNumber->getHubProvinceOrState()."</span><br/>
-                               <strong>Hub Zip</strong>
-                              <span>".$cpOrderNumber->getHubPostCode()."</span><br/>
                                <strong>Hub Country</strong>
                               <span>".$cpOrderNumber->getHubCountry()."</span><br/>
                             </fieldset>
@@ -219,7 +239,7 @@ class Pb_Pbgsp_Model_Observer {
             $cpord = $this->_getCPORD($observer->getEvent()->getBlock()->getOrder());
             if($cpord) {
                 $staging = 0;
-                if(strpos(Pb_Pbgsp_Model_Credentials::getApiUrl(),'cpsandbox') >=0)
+                if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox') >=0)
                     $staging = 1;
                 $transport['html'] = "<a href='http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging'>Track your order</a>";
             }
@@ -250,7 +270,7 @@ class Pb_Pbgsp_Model_Observer {
             $cpord = $this->_getCPORD(Mage::getModel('sales/order')->load($orderId));
             if($cpord) {
                 $staging = 0;
-                if(strpos(Pb_Pbgsp_Model_Credentials::getApiUrl(),'cpsandbox') >=0)
+                if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox') >=0)
                     $staging = 1;
                 $script = "<script lang='javascript'>
                                 window.location = 'http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging';
@@ -303,13 +323,15 @@ class Pb_Pbgsp_Model_Observer {
     private function _getCpOrderNumber($order)
     {
         if($order) {
-            $clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
-
-            $clearPathOrders -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
-            foreach ($clearPathOrders as $cpOrder) {
-                return $cpOrder ;
-
-            }
+//            $clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
+//
+//            $clearPathOrders -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
+//            foreach ($clearPathOrders as $cpOrder) {
+//                return $cpOrder ;
+//
+//            }
+            $cpOrder = Mage::getModel("pb_pbgsp/ordernumber")->load($order -> getRealOrderId(),'mage_order_number');
+            return $cpOrder;
         }
 
         return false;

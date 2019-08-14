@@ -1,5 +1,11 @@
 <?php
-
+/**
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/sql/pbgsp_setup/mysql4-install-1.0.0.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ */
 
 
 	$installer = $this;
@@ -28,6 +34,7 @@
 					`hub_street2` varchar(50) null,
 					`hub_province_or_state` varchar(50) null,
 					`hub_country` varchar(50) null,
+					`hub_postal_code` varchar(50) null,
 					PRIMARY KEY (`ordernumber_id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -43,10 +50,10 @@
 					");
 
 $eav = Mage::getResourceModel('catalog/setup', 'catalog_setup');//new Mage_Eav_Model_Entity_Setup('catalog_setup');
-//$eav->removeAttribute('catalog_product','pb_pbgsp_upload');
+$eav->removeAttribute('catalog_product','pb_pbgsp_upload');
 $eav->addAttribute('catalog_product', 'pb_pbgsp_upload', array(
-    'type' => 'int',
-    'input' => 'text',
+    'type' => 'datetime',
+    'input' => 'datetime',
     'label' => 'Last PBGSP upload timestampt',
     'global' => 2,
     'user_defined' => 0,
@@ -55,6 +62,35 @@ $eav->addAttribute('catalog_product', 'pb_pbgsp_upload', array(
     'default' => 0
 
 ));
+$eav->removeAttribute('catalog_category','pb_pbgsp_upload');
+$eav->addAttribute('catalog_category', 'pb_pbgsp_upload', array(
+    'type' => 'datetime',
+    'input' => 'datetime',
+    'label' => 'Last PBGSP upload timestampt',
+    'global' => 2,
+    'user_defined' => 0,
+    'required' => 0,
+    'visible' => 1,
+    'default' => 0,
+    'group' => 'PBGSP'
+
+));
+
+$eav->removeAttribute('catalog_category','pb_pbgsp_upload_active');
+$eav->addAttribute('catalog_category', 'pb_pbgsp_upload_active', array(
+    'type' => 'int',
+    'input' => 'select',
+    'label' => 'Export to PBGSP',
+    'source' => 'eav/entity_attribute_source_boolean',
+    'global' => 2,
+    'user_defined' => 0,
+    'required' => 0,
+    'visible' => 1,
+    'default' => 1,
+    'group' => 'PBGSP'
+
+));
+
 
 	$installer->endSetup();
 ?>

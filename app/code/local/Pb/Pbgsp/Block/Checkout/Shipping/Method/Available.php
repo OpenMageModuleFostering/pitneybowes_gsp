@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Block/Checkout/Shipping/Method/Available.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ */
+
 	class Pb_Pbgsp_Block_Checkout_Shipping_Method_Available extends Mage_Checkout_Block_Onepage_Shipping_Method_Available {
 		
 		protected $errors;

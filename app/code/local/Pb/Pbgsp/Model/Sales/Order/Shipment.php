@@ -1,9 +1,10 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: Muhammad
- * Date: 3/27/2015
- * Time: 12:51 AM
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Model/Sales/Order/Shipment.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 
 class Pb_Pbgsp_Model_Sales_Order_Shipment extends Mage_Sales_Model_Order_Shipment {

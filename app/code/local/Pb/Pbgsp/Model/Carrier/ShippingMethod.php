@@ -1,7 +1,11 @@
 <?php
 
 /**
- * Class Pb_Pbgsp_Model_Carrier_ShippingMethod
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Model/Carrier/ShippingMethod.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_Abstract
 {
@@ -14,16 +18,7 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
   
   public function getConfigData($field) {
   	  /* BigPixel 3/25/2012. hide errors for not applicable countries */
-	  /*if ($field == "showmethod") {
-		  // Make sure all errors are displayed.
-		  return 1;
-	  } else {
-		  return parent::getConfigData($field);
-	  }*/
-	 /*if ($field == "showmethod") {
-	 	Pb_Pbgsp_Model_Util::log($field .':'. parent::getConfigData($field));
-	 	Pb_Pbgsp_Model_Util::log($this->get_callstack());
-	 }*/
+
 	 return parent::getConfigData($field);
   }
 
@@ -137,7 +132,17 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
         // rate cost is optional property to record how much it costs to vendor to ship
         $method->setCost($transportation['shipping']['value']);
         $method->setPrice((floatval($transportation['total']['value']) + $handlingFee + $domesticShippingFee));
-        $method->setTax($quote['totalImportation']['total']['value']);
+
+        if(Pb_Pbgsp_Model_Credentials::isFreeTaxEnabled()) {
+            Pb_Pbgsp_Model_Util::log('Free tax enabled');
+            $method->setTax(0);
+        }
+
+        else {
+            Pb_Pbgsp_Model_Util::log('Free tax disabled');
+            $method->setTax($quote['totalImportation']['total']['value']);
+        }
+
         return $method;
     }
     private function _getCheapestShipMethod($quoteSet,$items)
@@ -167,7 +172,7 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
      */
   public function collectRates(Mage_Shipping_Model_Rate_Request $request)
   {
-  	Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Carrier_ShippingMethod.collectRates ' . Mage::getStoreConfig('carriers/'.$this->_code.'/active'));
+  	//Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Carrier_ShippingMethod.collectRates ' . Mage::getStoreConfig('carriers/'.$this->_code.'/active'));
     // skip if not enabled
     if (!Mage::getStoreConfig('carriers/'.$this->_code.'/active')) {
         return false;
@@ -256,6 +261,7 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
                   }
                   else {
                       $method = $this->_getShipMethodFromQuote($quote,$items);
+
                       // add this rate to the result
                       $result->append($method);
                       array_push($shipMethods,$method);
@@ -272,9 +278,9 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
       catch(Exception $e) {
           Pb_Pbgsp_Model_Util::log("Error getting quotes");
           Pb_Pbgsp_Model_Util::logException($e);
-          $message = $e->getMessage();
-          if($e->getMessage() == '')
-              $message = "Received unexpected error in getting quotes from Pbgsp. Please contact with administrator.";
+          //$message = $e->getMessage();
+          //if($e->getMessage() == '')
+              $message = "We've received an unexpected error while getting your quote. Please try again. If the error persists contact magentosupport@pb.com.";
           $this->_addError($result,$message);
 
       }

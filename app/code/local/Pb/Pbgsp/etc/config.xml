@@ -133,6 +133,24 @@
                     </Pb_Pbgsp_Estimated_Shipping>
                 </observers>
             </controller_action_postdispatch_checkout_cart_estimateUpdatePost>
+            <catalog_product_load_after>
+                <observers>
+                    <Pb_Pbgsp_Product_Last_Export>
+                        <type>model</type>
+                        <class>pb_pbgsp/observer</class>
+                        <method>productLoadAfter</method>
+                    </Pb_Pbgsp_Product_Last_Export>
+                </observers>
+            </catalog_product_load_after>
+            <catalog_category_load_after>
+                <observers>
+                    <Pb_Pbgsp_Product_Last_Export>
+                        <type>model</type>
+                        <class>pb_pbgsp/observer</class>
+                        <method>categoryLoadAfter</method>
+                    </Pb_Pbgsp_Product_Last_Export>
+                </observers>
+            </catalog_category_load_after>
         </events>
         <sales>
             <quote>
@@ -328,7 +346,7 @@
                         <display>Invalid fields in commoditySources.</display>
                     </_1005009>
                     <_1005010>
-                        <display>There are errors at the Quote Line Level.</display>
+                        <display>This basket is over the dollar value for international shipping. Please remove some items before proceeding.</display>
                     </_1005010>
                     <_1005011>
                         <display>There are errors at the Quote Item Level.</display>

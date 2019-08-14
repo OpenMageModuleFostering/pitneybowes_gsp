@@ -1,4 +1,11 @@
 <?php
+/**
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Model/Api.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ */
 class Pb_Pbgsp_Model_Api
 {
 
@@ -86,7 +93,7 @@ class Pb_Pbgsp_Model_Api
             curl_setopt($curl, CURLOPT_POSTFIELDS, 'grant_type=client_credentials');
             // Will return the response, if false it print the response
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            $url = Pb_Pbgsp_Model_Credentials::getApiUrl().'/auth/token';
+            $url = Pb_Pbgsp_Model_Credentials::getAuthorizationUrl();
             curl_setopt($curl, CURLOPT_URL, $url);
             $response = curl_exec($curl);
             $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
@@ -98,6 +105,7 @@ class Pb_Pbgsp_Model_Api
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $info = curl_getinfo($curl);
             if($status != 200) {
+                Pb_Pbgsp_Model_Util::log("Error getting authentication token.". $response);
                 throw new Exception("Could not get authentication token",$status);
             }
             curl_close($curl);
@@ -149,12 +157,13 @@ class Pb_Pbgsp_Model_Api
                 /* @var Mage_Sales_Model_Order_Item $product */
 
             	$totalProducts += $product->getQty();
-                //$value = $product->getPrice() - ($product->getDiscountAmount() / $product->getQty());
-                /* @var Mage_Catalog_Model_Product $realProd*/
-                //$realProd = $product->getProduct();
-                //Pb_Pbgsp_Model_Util::log('discount amount'. $product->getDiscountAmount());
-                //$price = $realProd->getPrice();
-                $price = $product->getPrice();//$price - ($product->getDiscountAmount() * $product->getQty());
+
+//                Pb_Pbgsp_Model_Util::log('discount amount '. $product->getDiscountAmount());
+//                Pb_Pbgsp_Model_Util::log('Price '. $product->getPrice());
+
+                $price = $product->getPrice() - $product->getDiscountAmount();//$price - ($product->getDiscountAmount() * $product->getQty());
+                if($price == 0)
+                    $price = 0.01; //set this price so that quote could be retrieved.
                 array_push($basketLines, array(
                                               "lineId" => $product->getSku(),
                                               "commodity" => array('merchantComRefId' => $product->getSku()),
@@ -313,7 +322,7 @@ class Pb_Pbgsp_Model_Api
 
     }
     public static function getCheckoutUrl($method) {
-        return Pb_Pbgsp_Model_Credentials::getApiUrl().'/checkout/services/v1/'.$method;
+        return Pb_Pbgsp_Model_Credentials::getCheckoutUrl().'/'.$method;
     }
     public static function getQuote($products,$address)
     {
@@ -343,7 +352,7 @@ class Pb_Pbgsp_Model_Api
 
                $url = self::getCheckoutUrl('orders');
             $response = self::CallAPI('POST',$url,$basket);
-
+            Pb_Pbgsp_Model_Util::log("response of create order ". $response );
 
             $orderSet = json_decode($response,true);
             Pb_Pbgsp_Model_Util::log('response of orders ');

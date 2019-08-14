@@ -1,4 +1,11 @@
 <?php
+/**
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Block/Sales/Order/Totals.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ */
 class Pb_Pbgsp_Block_Sales_Order_Totals extends Mage_Sales_Block_Order_Totals {
 
 	public static function addDuties(Varien_Object $total, $after, $shipMethod, $taxAmount) {
@@ -13,7 +20,7 @@ class Pb_Pbgsp_Block_Sales_Order_Totals extends Mage_Sales_Block_Order_Totals {
 				$total = new Varien_Object(array(
 							 'code'			=> 'tax',
 							 'value'		=> $taxAmount,
-							 'label'		=> 'Duty & Taxes'
+							 'label'		=> 'Importation Charges'
 							 ));
 			}
 		}
@@ -30,6 +37,20 @@ class Pb_Pbgsp_Block_Sales_Order_Totals extends Mage_Sales_Block_Order_Totals {
 		return parent::addTotal($total,$after);
 
 	}
-	
+    public function getTotals($area=null)
+    {
+        $totals = parent::getTotals($area);
+        $shipMethod = $this->getOrder()->getShippingMethod();
+        $len = strlen("pbgsp_");
+        if (strlen($shipMethod) > $len && substr($shipMethod,0,$len) == "pbgsp_") {
+            Pb_Pbgsp_Model_Util::log("getTotals PB shipmethod");
+            if(array_key_exists("shipping",$totals)) {
+                $shipping = $totals['shipping'];
+                $shipping->setLabel('Transportation Charges');
+        }
+        }
+
+        return $totals;
+    }
 }
 ?>

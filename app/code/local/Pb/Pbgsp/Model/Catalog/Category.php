@@ -1,4 +1,11 @@
 <?php
+/**
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Model/Catalog/Category.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ */
 class Pb_Pbgsp_Model_Catalog_Category {
 	protected $category;
 	private static $roots;
@@ -49,26 +56,36 @@ class Pb_Pbgsp_Model_Catalog_Category {
 	public function getParentCode() {
 		return $this->category->getParentId();
 	}
-	
-	public function writeToFile($file) {
-        $name = Pb_Pbgsp_Model_Catalog_File::stripHtml($this->getName());
-        $name = preg_replace("/[^A-Za-z0-9 ,.\-\+=;:\\(){}\[\]@?%$#]/", '', $name);
-//		$string = "<Category>\n";
-//		$string .= "<CategoryCode>".htmlentities($this->getCode())."</CategoryCode>\n";
-//		$string .= "<Name>".htmlentities($name)."</Name>\n";
-//		//$string .= "<URL><![CDATA[".htmlentities($this->getUrl())."]]></URL>\n";
-//        $string .= "<URL><![CDATA[".htmlentities($this->getUrl())."]]></URL>\n";
-//		if($this->getParentCode() != 1 && !$this->isRoot()){
-//			$string .= "<ParentCategoryCode>".htmlentities($this->getParentCode())."</ParentCategoryCode>\n";
-//		}
-//		$string .= "</Category>\n";
-        //fputcsv($this->file,array('CATEGORY_ID','PARENT_CATEGORY_ID','NAME','ID_PATH','URL'));
-        $parentCateID = '';
-        if($this->getParentCode() != 1 && !$this->isRoot()){
-            $parentCateID =   $this->getParentCode();
+    private function _shouldUpload($lastDiff) {
+
+        Pb_Pbgsp_Model_Util::log($this->category->getPbPbgspUploadActive());
+        if(!$this->category->getPbPbgspUploadActive()) return false;
+        $lastUpload = $this -> category -> getPbPbgspUpload();
+        //Pb_Pbgsp_Model_Util::log('Product '. $this -> getSKU() . ' lastUpload='. $lastUpload . '   '. date('m-d-Y H:i:s',$lastUpload));
+        if (!$lastUpload) {
+            // First upload.
+            return true;
+        } else if ($lastDiff <= $lastUpload - (30 * 60)) {
+            // Added after the last diff
+            return true;
+        } else {
+            return false;
         }
-        fputcsv($file,array($this->getCode(),$parentCateID,$name,'',$this->getUrl()));
-        //fwrite($file,$string);
+    }
+	public function writeToFile($file,$lastDiff) {
+        if($this->_shouldUpload($lastDiff)) {
+            $name = Pb_Pbgsp_Model_Catalog_File::stripHtml($this->getName());
+            $name = preg_replace("/[^A-Za-z0-9 ,.\-\+=;:\\(){}\[\]@?%$#]/", '', $name);
+
+            $parentCateID = '';
+            if($this->getParentCode() != 1 && !$this->isRoot()){
+                $parentCateID =   $this->getParentCode();
+            }
+            fputcsv($file,array($this->getCode(),$parentCateID,$name,'',$this->getUrl()));
+            return true;
+        }
+        return false;
+
 	}
 
 	// This is done via API

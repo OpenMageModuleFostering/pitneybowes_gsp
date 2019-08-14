@@ -1,4 +1,11 @@
 <?php
+/**
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Model/Credentials.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ */
 class Pb_Pbgsp_Model_Credentials {
 	
 	public static function decrypt($string) {
@@ -8,9 +15,15 @@ class Pb_Pbgsp_Model_Credentials {
 		return "";
 	}
 	
-	public static function getApiUrl() {
-		return Mage::getStoreConfig('carriers/pbgsp/apiurl');
+	public static function getCheckoutUrl() {
+		return Mage::getStoreConfig('carriers/pbgsp/checkout_endpoint');
 	}
+    public static function getAuthorizationUrl() {
+        return Mage::getStoreConfig('carriers/pbgsp/authorization_endpoint');
+    }
+    public static function getOrderMgmtAPIUrl() {
+        return Mage::getStoreConfig('carriers/pbgsp/order_mgmt_api');
+    }
     public static function getMaxRecordsCount() {
         return Mage::getStoreConfig('carriers/pbgsp/catalog_size');
     }
@@ -34,6 +47,9 @@ class Pb_Pbgsp_Model_Credentials {
     }
     public static function isASNGenerationEnabled() {
         return Mage::getStoreConfig('carriers/pbgsp/asn_generation_enabled');
+    }
+    public static function isFreeTaxEnabled() {
+        return Mage::getStoreConfig('carriers/pbgsp/free_tax_enable');
     }
     public static function getHandlingFee() {
 
@@ -104,9 +120,7 @@ class Pb_Pbgsp_Model_Credentials {
     public static function getPublicKey() {
         return Mage::getStoreConfig('carriers/pbgsp/encryption_public_key');
     }
-    public static function getOrderMgmtAPIUrl() {
-        return Mage::getStoreConfig('carriers/pbgsp/order_mgmt_api');
-    }
+
     public static function getPBID() {
         return "16061";
     }

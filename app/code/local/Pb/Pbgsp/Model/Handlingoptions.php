@@ -1,10 +1,10 @@
 <?php
 /**
- * Created by JetBrains PhpStorm.
- * User: muhammad.kamran
- * Date: 6/6/12
- * Time: 11:36 PM
- * To change this template use File | Settings | File Templates.
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Model/Handlingoptions.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 class Pb_Pbgsp_Model_Handlingoptions {
     public function toOptionArray()

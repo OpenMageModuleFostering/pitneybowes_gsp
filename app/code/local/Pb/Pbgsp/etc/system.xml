@@ -29,19 +29,27 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </merchantcode>
-                        <apiurl translate="label">
-                            <label>API Endpoint</label>
+                       <authorization_endpoint translate="label">
+                           <label>Authorization Endpoint</label>
+                           <frontend_type>text</frontend_type>
+                           <sort_order>15</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </authorization_endpoint>
+                        <checkout_endpoint translate="label">
+                            <label>Checkout Endpoint</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>18</sort_order>
+                            <sort_order>16</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                        </apiurl>
+                        </checkout_endpoint>
                        <order_mgmt_api translate="label">
-                           <label>Order Management API Endpoint</label>
+                           <label>ASN Endpoint</label>
                            <frontend_type>text</frontend_type>
 
-                           <sort_order>19</sort_order>
+                           <sort_order>17</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
@@ -198,7 +206,17 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </free_shipping_subtotal>
-                        <sort_order translate="label">
+                       <free_tax_enable translate="label">
+                           <label>Enable zero tax for customer</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_enabledisable</source_model>
+                           <sort_order>175</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </free_tax_enable>
+
+                       <sort_order translate="label">
                             <label>Sort order</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>230</sort_order>

@@ -1,7 +1,11 @@
 <?php
 
-/* Creates a temporary file containing a Pb catalog xml file. Because of possible PHP timeouts the creation of the
- * xml file is done in concrete steps that can be resumed in case of a timeout.
+/**
+ * Product:       Pb_Pbgsp (1.0.0)
+ * Packaged:      2015-06-04T15:09:31+00:00
+ * Last Modified: 2015-06-04T15:00:31+00:00
+ * File:          app/code/local/Pb/Pbgsp/Model/Catalog/File.php
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 
 class Pb_Pbgsp_Model_Catalog_File {
@@ -12,10 +16,11 @@ class Pb_Pbgsp_Model_Catalog_File {
     private $lastDiff;
     private $productIds;
     private $lastFileName;
-
+    private $uploadedCategories;
     public function __construct($lastDiff = false) {
         $this->lastDiff = $lastDiff;
         $this->productIds = array();
+        $this->uploadedCategories = array();
     }
 
     private function _getTempDir() {
@@ -129,7 +134,8 @@ class Pb_Pbgsp_Model_Catalog_File {
                     $fileRecordCount=0;
                     $part++;
                 }
-                $cat->writeToFile($this->file);
+                if($cat->writeToFile($this->file,$this->lastDiff))
+                    $this->uploadedCategories[] = $rootCat;
                 fflush($this->file);
                 $catCount++;
                 $fileRecordCount++;
@@ -137,6 +143,8 @@ class Pb_Pbgsp_Model_Catalog_File {
                     ->getCollection()
                     ->addUrlRewriteToResult()
                     ->addAttributeToSelect('name')
+                    ->addAttributeToSelect('pb_pbgsp_upload_active')
+                    ->addAttributeToSelect('pb_pbgsp_upload')
                     ->addFieldToFilter('path', array('like'=> "1/$rootId/%"));
                 $addedCategories[] = $rootCat;
 
@@ -159,7 +167,8 @@ class Pb_Pbgsp_Model_Catalog_File {
                     if($catUrl == $category->getUrl())
                         $catUrl = str_replace($secDefaultStoreUrl,$baseURL,$category->getUrl());
                     $cat = new Pb_Pbgsp_Model_Catalog_Category($category,$catUrl);
-                    $cat->writeToFile($this->file);
+                    if($cat->writeToFile($this->file,$this->lastDiff))
+                        $this->uploadedCategories[] = $category;
                     fflush($this->file);
                     $catCount++;
                     $fileRecordCount++;
@@ -297,8 +306,8 @@ class Pb_Pbgsp_Model_Catalog_File {
             $setup = new Mage_Eav_Model_Entity_Setup('core_setup');
             $setup->addAttribute('catalog_product', 'pb_pbgsp_upload', array(
                 'label'		=> 'Last Pb upload timestampt',
-                'type'		=> 'varchar',
-                'input'		=> 'text',
+                'type'		=> 'datetime',
+                'input'		=> 'datetime',
                 'visible'		=> false,
                 'required'	=> false,
                 'position'	=> 1,
@@ -311,6 +320,7 @@ class Pb_Pbgsp_Model_Catalog_File {
         foreach ($productIds as $prodId) {
             $product = Mage::getModel("catalog/product")->load($prodId);
             //Pb_Pbgsp_Model_Util::log('Updating product '. $product->getSKU());
+            $product->unlockAttribute('pb_pbgsp_upload');
             $product->setPbPbgspUpload(time());
             try{
                 $product->save();
@@ -322,6 +332,39 @@ class Pb_Pbgsp_Model_Catalog_File {
             //Pb_Pbgsp_Model_Util::log($product->getId()." ".$product->getName()." ".$product->getPbPbgspUpload());
         }
         Pb_Pbgsp_Model_Util::log("$updated products' pb_pbgsp_upload updated");
+    }
+
+    public function updateLastCategoryUpload() {
+
+        $attribute = Mage::getModel('eav/config')->getAttribute('catalog_category', 'pb_pbgsp_upload');
+        if(!$attribute->getAttributeId()) {
+            $setup = new Mage_Eav_Model_Entity_Setup('core_setup');
+            $setup->addAttribute('catalog_category', 'pb_pbgsp_upload', array(
+                'label'		=> 'Last Pb upload timestampt',
+                'type'		=> 'datetime',
+                'input'		=> 'datetime',
+                'visible'		=> false,
+                'required'	=> false,
+                'position'	=> 1,
+            ));
+        }
+
+
+        Pb_Pbgsp_Model_Util::log('Uploaded categories' . count($this->uploadedCategories));
+        $updated = 0;
+        foreach ($this->uploadedCategories as $category) {
+            $category->unlockAttribute('pb_pbgsp_upload');
+            $category->setPbPbgspUpload(time());
+            try{
+                $category->save();
+                $updated++;
+            }catch(Exception $e){
+                Pb_Pbgsp_Model_Util::log("There was a problem saving the category  ". $category->getName() ." Error Message \n" . $e->getMessage());
+            }
+
+            //Pb_Pbgsp_Model_Util::log($product->getId()." ".$product->getName()." ".$product->getPbPbgspUpload());
+        }
+        Pb_Pbgsp_Model_Util::log("$updated categories' pb_pbgsp_upload updated");
     }
 
     /**
@@ -410,6 +453,15 @@ class Pb_Pbgsp_Model_Catalog_File {
             }
         }
 
+        $exportedFilesVariable = $this->_getExportedFilesVariable();
+        if(!isset($exportedFilesVariable))
+        {
+            $exportedFilesVariable = Mage::getModel("pb_pbgsp/variable");
+            $exportedFilesVariable->setName("exportedFiles");
+        }
+
+        $exportedFilesVariable->setValue('');
+        $exportedFilesVariable->save();
     }
     private function _downloadStatusNotifications($notificationDir) {
 
@@ -433,6 +485,8 @@ class Pb_Pbgsp_Model_Catalog_File {
                 return;
             foreach($files as $file) {
                 foreach($exportedFiles as $exportedFile) {
+                    if($exportedFile == '')
+                        continue;
                     $fileNameWithoutExtension = str_replace(".gpg","",str_replace(".csv","",$exportedFile));
                     if($this->_startsWith($file['text'],$fileNameWithoutExtension)) {
                         $dest = $notificationDir.'/'.$file['text'];
@@ -542,6 +596,7 @@ class Pb_Pbgsp_Model_Catalog_File {
         Pb_Pbgsp_Model_Util::log("Pb catalog file upload ended");
 
         $this->_removeExportedFiles($exportedFiles);
+        $this->updateLastCategoryUpload();
         $this->updateLastProductUpload();
         $this->_logExportedFileInDB($uploadedFiles);
     }
@@ -561,7 +616,7 @@ class Pb_Pbgsp_Model_Catalog_File {
     }
     private function _getLastExportedFileNames() {
         $exportedFilesVariable = $this->_getExportedFilesVariable();
-        if(!isset($exportedFilesVariable))
+        if(!isset($exportedFilesVariable) && $exportedFilesVariable->getValue() != '')
             return false;
         $exportedFiles = explode('|',$exportedFilesVariable->getValue());
         return $exportedFiles;
