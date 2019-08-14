@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.1)
- * Packaged:      2015-09-21T15:12:31+00:00
- * Last Modified: 2015-06-04T15:00:31+00:00
+ * Product:       Pb_Pbgsp (1.0.2)
+ * Packaged:      2015-09-25T15:12:28+00:00
+ * Last Modified: 2015-09-21T15:12:31+00:00
+
 
  * File:          app/code/local/Pb/Pbgsp/Model/Observer.php
  * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
@@ -53,8 +54,8 @@ class Pb_Pbgsp_Model_Observer {
                 //check if ASN already generated or not
                 $parcel = Mage::getModel("pb_pbgsp/inboundparcel")-> getCollection();
                 $parcel -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
-                if(count($parcel) > 0)
-                    return;
+//                if(count($parcel) > 0)
+//                    return;
                 Pb_Pbgsp_Model_Util::log("Generting ASN.");
                 $clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
                 $clearPathOrders -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
