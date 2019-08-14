@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.4.1</version>
+            <version>1.4.2</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -208,7 +208,11 @@
             <pbgsp>
                 <class>Pb_Pbgsp_Helper</class>
             </pbgsp>
-
+            <shipping>
+                <rewrite>
+                    <data>Pb_Pbgsp_Helper_Shipping</data>
+                </rewrite>
+            </shipping>
         </helpers>
     </global>
     <resources>
@@ -579,6 +583,11 @@
                             <sort_order>0</sort_order>
                             <action>adminhtml/categorysettings</action>
                         </items>
+                        <!--<claims module="pbgsp">-->
+                            <!--<title>Submit Claim</title>-->
+                            <!--<sort_order>1</sort_order>-->
+                            <!--<action>adminhtml/pbclaims</action>-->
+                        <!--</claims>-->
                     </children>
                 </pbgsp>
             </menu>

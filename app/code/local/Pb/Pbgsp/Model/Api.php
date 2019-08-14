@@ -1,7 +1,7 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.1)
- * Packaged:      2016-07-26T14:25:00+00:00
+ * Product:       Pb_Pbgsp (1.4.2)
+ * Packaged:      2016-09-21T11:45:00+00:00
  * Last Modified: 2016-09-13T10:50:00+00:00
 
 
@@ -180,7 +180,7 @@ class Pb_Pbgsp_Model_Api
 				$category_name= array();
 					foreach ($cats as $category_id) {
 						$_cat = Mage::getModel('catalog/category')->load($category_id) ;
-						$category_name[]= array("merchantCatRefId" =>$_cat->getName());
+						$category_name[]= array("merchantCatRefId" =>$_cat->getId());
 					}
                 $shortDescription = Pb_Pbgsp_Model_Util::stripHtml($actualProduct -> getShortDescription());
                 $shortDescription = preg_replace("/[^A-Za-z0-9 .\-\+=;:\\(){}\[\]@?%$#]/",'',$shortDescription);
