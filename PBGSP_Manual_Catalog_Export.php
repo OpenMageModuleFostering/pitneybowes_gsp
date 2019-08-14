@@ -34,10 +34,17 @@ class TestClass {
         $pbExport->processStatusNotifications();
     }
 
+    public static function testAsnGeneration() {
+        $pbAsnCron = Mage::getModel('pb_pbgsp/inboundparcel');
+        $pbAsnCron->generateInboundParcelPreAdviceCron();
+    }
+
 }
 if(isset($argv) && count($argv) > 1) {
     if($argv[1] == '1')
      TestClass::testProcessNotification();
+    else if($argv[1] == '2')
+        TestClass::testAsnGeneration();
 }
 else {
     TestClass::TestExport();

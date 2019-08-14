@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.0)
- * Packaged:      2015-11-12T06:33:00+00:00
- * Last Modified: 2015-11-04T12:13:20+00:00
+ * Product:       Pb_Pbgsp (1.3.2)
+ * Packaged:      2016-01-11T11:12:49+00:00
+ * Last Modified: 2015-12-18T11:00:00+00:00
 
 
 
@@ -131,11 +131,6 @@ class Pb_Pbgsp_Model_Catalog_Product {
         $name = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getName());
 		$shortDescription ='';
         $name = preg_replace("/[^A-Za-z0-9 ,.\-\+=;:\\(){}\[\]@?%$#]/", '', $name);
-        $string = "<Commodity>\n";
-        $string .= "<CategoryCode><![CDATA[" . htmlentities($categoryCode) . "]]></CategoryCode>\n";
-        $string .= "<SKU><![CDATA[" . htmlentities($this -> getSKU()) . "]]></SKU>\n";
-        $string .= "<Name><![CDATA[" . htmlentities($name) . "]]></Name>\n";
-        $string .= "<CountryOfOrigin><![CDATA[" . htmlentities(preg_replace("/[^A-Za-z0-9]/",'',$this -> getCountryOfOrigin())) . "]]></CountryOfOrigin>\n"; //added by kamran,1/14/2012
         $description = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getDescription());
         $description = preg_replace("/[^A-Za-z0-9 .\-\+=;:\\(){}\[\]@?%$#]/", '', $description);
         if (strlen($description) >= 2000) {
@@ -149,13 +144,8 @@ class Pb_Pbgsp_Model_Catalog_Product {
 
             $shortDescription = $this -> chopString($shortDescription, 1999);
         }
-        $string .= "<Description><![CDATA[" . $description . "]]></Description>\n";
-        $string .= "<URL><![CDATA[" . htmlentities($this -> getURL()) . "]]></URL>\n";
 
-        if ($this->getWeight() != null) {
-            $string .= "<Size><Weight><![CDATA[" . $this -> getWeight() . "]]></Weight><Source><![CDATA[" . Pb_Pbgsp_Model_Credentials::getMerchantCode() . "]]></Source></Size>\n";
-        }
-        $string .= "</Commodity>\n";
+
 //        fputcsv($this->file,array('MERCHANT_COMMODITY_REF_ID','COMMODITY_NAME_TITLE','SHORT_DESCRIPTION',
 //            'LONG_DESCRIPTION','RETAILER_ID','COMMODITY_URL','RETAILER_UNIQUE_ID','PCH_CATEGORY_ID',
 //            'RH_CATEGORY_ID','STANDARD_PRICE','WEIGHT_UNIT','DISTANCE_UNIT','COO','IMAGE_URL','PARENT_SKU',
@@ -175,7 +165,7 @@ class Pb_Pbgsp_Model_Catalog_Product {
 		}
         fputcsv($file,array($this -> getSKU(),$name,$shortDescription,$description,$merchantCode,$this -> getURL(),$merchantCode,'',$categoryCode,$this->getPrice(),'lb','',$this->getCountryOfOrigin(),'','',
             '','','','','','','','','',
-            '','','','',
+            '','',$this->getProductCondition(),'',
             '','','','','',
             '','','','','','',
             '','','','',
@@ -185,6 +175,9 @@ class Pb_Pbgsp_Model_Catalog_Product {
         //fwrite($file, $string);
     }
 
+    public function getProductCondition() {
+        return $this -> product -> getPbPbgspProductCondition();
+    }
     /**
      * @param $lastDiff
      * @return bool

@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.0)
- * Packaged:      2015-11-12T06:33:00+00:00
- * Last Modified: 2015-11-04T12:13:20+00:00
+ * Product:       Pb_Pbgsp (1.3.2)
+ * Packaged:      2016-01-11T11:12:49+00:00
+ * Last Modified: 2015-12-18T11:00:00+00:00
 
 
 
@@ -139,5 +139,46 @@ class Pb_Pbgsp_Model_Sales_Order_Shipment extends Mage_Sales_Model_Order_Shipmen
         return $template;
     }
 
+    public function getTracksCollection()
+    {
+
+        try {
+            $order = $this->getOrder();
+            $shipMethod = $order->getShippingMethod();
+            $len = strlen("pbgsp_");
+            $isCPOrder = false;
+            if (strlen($shipMethod) > $len && substr($shipMethod, 0, $len) == "pbgsp_") {
+                $isCPOrder = true;
+            }
+            if(!$this->isAdmin() && $isCPOrder) {
+                if(Mage::getStoreConfig('carriers/pbgsp/suppress_domestic_tracking') == '1') {
+
+                    return Mage::getResourceModel('sales/order_shipment_track_collection')
+                        ->addFieldToFilter('title', 'PB')
+                        ->setShipmentFilter($this->getId());
+                }
+            }
+        }
+        catch(Exception $e) {
+            Pb_Pbgsp_Model_Util::logException($e);
+        }
+
+        return parent::getTracksCollection();
+    }
+
+    public function isAdmin()
+    {
+        if(Mage::app()->getStore()->isAdmin())
+        {
+            return true;
+        }
+
+        if(Mage::getDesign()->getArea() == 'adminhtml')
+        {
+            return true;
+        }
+
+        return false;
+    }
 
 }

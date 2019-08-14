@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.3.1</version>
+            <version>1.3.4</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -204,21 +204,40 @@
         </sales_setup>
     </resources>
 
-   <frontend>
-       <layout>
-           <updates>
-               <Pb_Pbgsp>
-                   <file>pbgsp.xml</file>
-               </Pb_Pbgsp>
-           </updates>
-       </layout>
-   </frontend>
+    <!--<frontend>-->
+        <!--<layout>-->
+            <!--<updates>-->
+                <!--<pbcheckout>-->
+                    <!--<file>pbcheckout.xml</file>-->
+                <!--</pbcheckout>-->
+            <!--</updates>-->
+        <!--</layout>-->
+        <!--<routers>-->
+            <!--<Pb_Pbgsp>-->
+                <!--<use>standard</use>-->
+                <!--<args>-->
+                    <!--<module>Pb_Pbgsp</module>-->
+                    <!--<frontName>pbgsp</frontName>-->
+                    <!--&lt;!&ndash; loads ../controller/IndexController in http://..../magento/index.php/testController &ndash;&gt;-->
+                <!--</args>-->
+            <!--</Pb_Pbgsp>-->
+        <!--</routers>-->
+        <!--<translate>-->
+            <!--<modules>-->
+                <!--<translations>-->
+                    <!--<files>-->
+                        <!--<default>Pb_Pbgsp.csv</default>-->
+                    <!--</files>-->
+                <!--</translations>-->
+            <!--</modules>-->
+        <!--</translate>-->
+    <!--</frontend>-->
 
     <default>
-        <carriers>
+        <carriers>	
             <pbgsp>
                 <active>1</active>
-                <sallowspecific>0</sallowspecific>
+				<sallowspecific>0</sallowspecific>
                 <model>Pb_Pbgsp_Model_Carrier_ShippingMethod</model>
                 <specificerrmsg>
                     This shipping method is currently unavailable.

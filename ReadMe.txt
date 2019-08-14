@@ -32,6 +32,34 @@ In order to take advantage of the file encryption setting in the extension confi
 CHANGELOG
 ========================================================
 
+v. 1.3.2
+
+Check for valid Magento order for ASN generation. Fixed an issue where if there was a problem at checkout, like credit card not working, an entry was created with the PB Order # but no Magento order #. The job that generates ASN will crash when it discovers these orphaned entries. If a valid magento order number isn’t generated at the time of order, an ASN will not be generated for the order.
+
+Cleaned up the get group details functionality to remove warning notice in logs.
+
+Integrated PB in carrier list for tracking details. Customer no longer sees the "custom value" title but more accurately sees the "PB INTERNATIONAL SHIPPING" carrier.
+
+
+
+v. 1.3.1
+
+Removed the PGP encryption functionality as it is no longer required.
+
+Added a configurable value to enable/disable logging of the extension.
+
+Add "operation" logic to the catalog export file name for "delete" status
+
+Fixed issue in Magento Enterprise <=1.12 and Community <=1.7 were looking for the Varien_Data_Form_Element_Datetime object which did not exist in that version of the software. The fix uses an alternative for date time for pre-builds.
+
+Added a commodity configurable value to allow the store manager to choose the condition of the commodity (new, used, refurbished) This new value is now being passed with the catalog export.
+
+Added a custom tab on the product detail editor for PB specific content
+
+Removed addition of the PB order number as a tracking value in customer order details. PB order number is still used when a tracking number not provided when generating ASN to avoid api error.
+
+
+
 v. 1.3.0
 
 Added admin interface for managing categories to be exported in the catalog. Store managers can now quickly enable and disable categories to be exported to PB.

@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.3.0)
- * Packaged:      2015-11-12T06:33:00+00:00
- * Last Modified: 2015-11-04T12:13:20+00:00
+ * Product:       Pb_Pbgsp (1.3.2)
+ * Packaged:      2016-01-11T11:12:49+00:00
+ * Last Modified: 2015-12-18T11:00:00+00:00
 
 
 
@@ -20,10 +20,12 @@ class Pb_Pbgsp_Model_Catalog_File {
     private $productIds;
     private $lastFileName;
     private $uploadedCategories;
+    private $productsToDelete;
     public function __construct($lastDiff = false) {
         $this->lastDiff = $lastDiff;
         $this->productIds = array();
         $this->uploadedCategories = array();
+        $this->productsToDelete = array();
     }
 
     private function _getTempDir() {
@@ -37,19 +39,19 @@ class Pb_Pbgsp_Model_Catalog_File {
     }
 
 
-    private function _getDataFileName($dataFeedName,$part=null) {
+    private function _getDataFileName($dataFeedName,$part=null,$operation='update') {
         $partName = '';
         if($part)
             $partName = '_'.str_pad($part, 5, "0", STR_PAD_LEFT);
-        $fileName = Pb_Pbgsp_Model_Credentials::getCatalogSenderID() . "_".$dataFeedName."_update_". Pb_Pbgsp_Model_Credentials::getPBID().'_'.date('Ymd_His').'_'.mt_rand(100000, 999999);
+        $fileName = Pb_Pbgsp_Model_Credentials::getCatalogSenderID() . "_".$dataFeedName."_".$operation."_". Pb_Pbgsp_Model_Credentials::getPBID().'_'.date('Ymd_His').'_'.mt_rand(100000, 999999);
         if($part == 1)
             $this->lastFileName = $fileName;
         else
             $fileName = $this->lastFileName;
         return $fileName.$partName.'.csv';
     }
-    private function _createNewCommoditiyFile($part=null) {
-        $fileName = $this->_getDataFileName('catalog',$part);
+    private function _createNewCommoditiyFile($part=null,$operation='update') {
+        $fileName = $this->_getDataFileName('catalog',$part,$operation);
 
 
         $this->filename =  $this->_getTempDir().$fileName;
@@ -110,6 +112,7 @@ class Pb_Pbgsp_Model_Catalog_File {
         $secDefaultStoreUrl = str_replace("http","https",$defaultStoreUrl);
         $disabledStores = array();
         $addedCategories = array();
+
         $part=1;
         foreach($stores as $store) {
 
@@ -217,6 +220,9 @@ class Pb_Pbgsp_Model_Catalog_File {
                     ->addAttributeToSelect('url_in_store')
                     ->addAttributeToSelect('pb_pbgsp_upload')
                     ->addAttributeToSelect('updated_at')
+                    ->addAttributeToSelect('pb_pbgsp_product_condition')
+                    ->addAttributeToSelect('pb_pbgsp_upload_delete')
+                    ->addAttributeToSelect('pb_pbgsp_upload_deleted_on')
                     // ->addUrlRewrite($category->getId()) //this will add the url rewrite.
                     ->addAttributeToSelect('price')
                     ->addAttributeToSelect('weight');
@@ -249,37 +255,72 @@ class Pb_Pbgsp_Model_Catalog_File {
                         /** @var $childProduct Mage_Catalog_Model_Product */
 
                         foreach($allowedProducts as $childProduct) {
-                            if(!array_key_exists($childProduct->getSku(),$addedProducts)) {
-                                if( $fileRecordCount > $maxRecordsCount)
-                                {
-                                    $this->_createNewCommoditiyFile($part);
-                                    $fileRecordCount=0;
-                                    $part++;
+                            if(!$childProduct->getPbPbgspUploadDelete()) {
+                                if(!array_key_exists($childProduct->getSku(),$addedProducts)) {
+                                    if( $fileRecordCount > $maxRecordsCount)
+                                    {
+                                        $this->_createNewCommoditiyFile($part);
+                                        $fileRecordCount=0;
+                                        $part++;
+                                    }
+                                    $pbChildProduct = new Pb_Pbgsp_Model_Catalog_Product($childProduct->getId(),sprintf($productUrlFormat,$product->getId()));
+                                    $this->writeProduct($pbChildProduct,$cateId,$product->getSku(),$prodCat);
+                                    $addedProducts[$childProduct->getSku()] = "added";
+                                    $prodCount++;
+                                    $fileRecordCount++;
                                 }
-                                $pbChildProduct = new Pb_Pbgsp_Model_Catalog_Product($childProduct->getId(),sprintf($productUrlFormat,$product->getId()));
-                                $this->writeProduct($pbChildProduct,$cateId,$product->getSku(),$prodCat);
-                                $addedProducts[$childProduct->getSku()] = "added";
-                                $prodCount++;
-                                $fileRecordCount++;
+                            }
+                            else {
+                                Mage::log("delete product ".$childProduct->getSku());
+                                if(!$childProduct->getPbPbgspUploadDeletedOn()) {
+                                    if(!array_key_exists($childProduct->getSku(),$this->productsToDelete)) {
+                                        $this->productsToDelete[$childProduct->getSku()] = array('product' => $childProduct,
+                                            'pbproduct' => new Pb_Pbgsp_Model_Catalog_Product($childProduct->getId(),sprintf($productUrlFormat,$product->getId())),
+                                            'catid' => $cateId,
+                                            'category' => $prodCat,
+                                            'parentSku' => $product->getSku());
+                                    }
+
+                                }
+                                else {
+                                    Mage::log("product already deleted ".$childProduct->getSku());
+                                }
+
                             }
                         }
                     }
                     else {
-                        if(!array_key_exists($product->getSku(),$addedProducts)) {
-                            $pbProduct = new Pb_Pbgsp_Model_Catalog_Product($product,sprintf($productUrlFormat,$product->getId()));
-                            if( $fileRecordCount > $maxRecordsCount)
-                            {
-                                $this->_createNewCommoditiyFile($part);
-                                $fileRecordCount=0;
-                                $part++;
+                        if(!$product->getPbPbgspUploadDelete()) {
+                            if (!array_key_exists($product->getSku(), $addedProducts)) {
+                                $pbProduct = new Pb_Pbgsp_Model_Catalog_Product($product, sprintf($productUrlFormat, $product->getId()));
+                                if ($fileRecordCount > $maxRecordsCount) {
+                                    $this->_createNewCommoditiyFile($part);
+                                    $fileRecordCount = 0;
+                                    $part++;
+                                }
+                                $this->writeProduct($pbProduct, $cateId, null, $prodCat);
+                                $prodCount++;
+                                $fileRecordCount++;
+                                $addedProducts[$product->getSku()] = "added";
+
                             }
-                            $this->writeProduct($pbProduct,$cateId,null,$prodCat);
-                            $prodCount++;
-                            $fileRecordCount++;
-                            $addedProducts[$product->getSku()] = "added";
+                        }
+                        else {
+                            Mage::log("delete product ".$product->getSku());
+                            if(!$product->getPbPbgspUploadDeletedOn()) {
+                                if(!array_key_exists($product->getSku(),$this->productsToDelete)) {
+                                    $this->productsToDelete[$product->getSku()] = array('product' => $product,
+                                        'pbproduct' => new Pb_Pbgsp_Model_Catalog_Product($product->getId(),sprintf($productUrlFormat,$product->getId())),
+                                        'catid' => $cateId,
+                                        'category' => $prodCat,
+                                        'parentSku' => $product->getSku());
+                                }
+                            }
+                            else {
+                                Mage::log("product already deleted ".$product->getSku());
+                            }
 
                         }
-
 
                     }
 
@@ -296,6 +337,33 @@ class Pb_Pbgsp_Model_Catalog_File {
         fflush($this->file);
 
         $this->_stripPartFromFileName($part);
+
+        if(count($this->productsToDelete) > 0) {
+            if($this->file)
+                fclose($this->file);
+
+
+            $fileRecordCount=0;
+            $part=1;
+            $this->_createNewCommoditiyFile($part,'delete');
+            $part++;
+            foreach($this->productsToDelete as $key => $prodData) {
+                $product = $prodData['product'];
+                $pbProduct = $prodData['pbproduct'];
+                $catId = $prodData['catid'];
+                $cat = $prodData['category'];
+                $parentSku = $prodData['parentSku'];
+                if ($fileRecordCount > $maxRecordsCount) {
+                    $this->_createNewCommoditiyFile($part,'delete');
+                    $fileRecordCount = 0;
+                    $part++;
+                }
+                $pbProduct->writeToFile($this->file,$catId,$parentSku,$cat);
+                $fileRecordCount++;
+                fflush($this->file);
+            }
+            $this->_stripPartFromFileName($part);
+        }
         if(count($this->productIds) == 0) {
             $this->_removeExportedFilesByeType('catalog');
         }
@@ -342,6 +410,7 @@ class Pb_Pbgsp_Model_Catalog_File {
             //Pb_Pbgsp_Model_Util::log('Updating product '. $product->getSKU());
             $product->unlockAttribute('pb_pbgsp_upload');
             $product->setPbPbgspUpload(time());
+            $product->setPbPbgspUploadDeletedOn(null);
             try{
                 $product->save();
                 $updated++;
@@ -350,6 +419,17 @@ class Pb_Pbgsp_Model_Catalog_File {
             }
 
             //Pb_Pbgsp_Model_Util::log($product->getId()." ".$product->getName()." ".$product->getPbPbgspUpload());
+        }
+        //update deleted products
+        foreach($this->productsToDelete as $prodData) {
+            $product = $prodData['product'];
+            $product->setPbPbgspUploadDeletedOn(time());
+            try{
+                $product->save();
+
+            }catch(Exception $e){
+                Pb_Pbgsp_Model_Util::log("There was a problem saving the product with sku ". $product->getSku() ." Error Message \n" . $e->getMessage());
+            }
         }
         Pb_Pbgsp_Model_Util::log("$updated products' pb_pbgsp_upload updated");
     }
@@ -602,7 +682,7 @@ class Pb_Pbgsp_Model_Catalog_File {
         try {
 
             if(Pb_Pbgsp_Model_Credentials::isEncryptionEnabled()) {
-                $exportedFiles = $this->_encryptExportedFiles($exportedFiles);
+               // $exportedFiles = $this->_encryptExportedFiles($exportedFiles);
             }
             else {
                 Pb_Pbgsp_Model_Util::log('Encryption is not enabled.'.Pb_Pbgsp_Model_Credentials::isEncryptionEnabled());

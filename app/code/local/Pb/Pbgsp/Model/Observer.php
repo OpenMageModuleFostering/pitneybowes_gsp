@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.0)
- * Packaged:      2015-11-12T06:33:00+00:00
- * Last Modified: 2015-11-04T12:13:20+00:00
+ * Product:       Pb_Pbgsp (1.3.2)
+ * Packaged:      2016-01-11T11:12:49+00:00
+ * Last Modified: 2015-12-18T11:00:00+00:00
 
 
 
@@ -99,7 +99,7 @@ class Pb_Pbgsp_Model_Observer {
 										 ->setShipment($shipment)
 										 ->setData('title', 'PB')
 										 ->setData('number',$parcelResponse['parcelIdentifier'])
-										 ->setData('carrier_code', 'custom')
+										 ->setData('carrier_code', 'pbgsp')
 										 ->setData('order_id', $shipment->getData('order_id'))
 										 ->save();
 				 
@@ -354,42 +354,45 @@ class Pb_Pbgsp_Model_Observer {
             }
 
         }
-        else if('shipping.tracking.popup' == $layoutName) {
-            if(!Mage::getStoreConfig('carriers/pbgsp/trackinglink'))
-                return;
-
-            $helper = Mage::helper('shipping');
-            $data = $helper->decodeTrackingHash($observer->getEvent()->getBlock()->getRequest()->getParam('hash'));
-
-            $orderId = null;
-            if($data['key'] == 'order_id')
-                $orderId = $data['id'];
-            else if($data['key'] == 'ship_id') {
-                /* @var $model Mage_Sales_Model_Order_Shipment */
-                $model = Mage::getModel('sales/order_shipment');
-                $ship = $model->load($data['id']);
-                $orderId = $model->getOrderId();
-            }
-            else if($data['key'] == 'track_id') {
-                $track = Mage::getModel('sales/order_shipment_track')->load($data['id']);
-                $orderId = $track->getOrderId();
-            }
-            if(!$orderId)
-                return;
-            $cpord = $this->_getCPORD(Mage::getModel('sales/order')->load($orderId));
-            if($cpord) {
-                $staging = 0;
-                if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox'))
-                    $staging = 1;
-				
-                $script = "<script lang='javascript'>
-                                window.location = 'http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging';
-                           </script>
-                            ";
-                $transport['html'] = $script;
-            }
-
-        }
+//        else if('shipping.tracking.popup' == $layoutName) {
+//            if(!Mage::getStoreConfig('carriers/pbgsp/trackinglink'))
+//                return;
+//
+//            $helper = Mage::helper('shipping');
+//            $data = $helper->decodeTrackingHash($observer->getEvent()->getBlock()->getRequest()->getParam('hash'));
+//
+//            $orderId = null;
+//            if($data['key'] == 'order_id')
+//                $orderId = $data['id'];
+//            else if($data['key'] == 'ship_id') {
+//                /* @var $model Mage_Sales_Model_Order_Shipment */
+//                $model = Mage::getModel('sales/order_shipment');
+//                $ship = $model->load($data['id']);
+//                $orderId = $model->getOrderId();
+//            }
+//            else if($data['key'] == 'track_id') {
+//                $track = Mage::getModel('sales/order_shipment_track')->load($data['id']);
+//                $orderId = $track->getOrderId();
+//            }
+//            if(!$orderId)
+//                return;
+//            $cpord = $this->_getCPORD(Mage::getModel('sales/order')->load($orderId));
+//            if($cpord) {
+//                if(Mage::getStoreConfig('carriers/pbgsp/suppress_domestic_tracking') == '1') {
+//                    $staging = 0;
+//                    if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox'))
+//                        $staging = 1;
+//
+//                    $script = "<script lang='javascript'>
+//                                window.location = 'http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging';
+//                               </script>
+//                            ";
+//                    $transport['html'] = $script;
+//                }
+//
+//            }
+//
+//        }
         else
 //            if( 'checkout.onepage.review' == $layoutName
 //            || 'checkout.onepage.review.info.totals' == $layoutName

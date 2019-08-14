@@ -212,6 +212,13 @@
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
+						   <comment><![CDATA[
+							 <script type='text/javascript'>    
+								$("row_carriers_pbgsp_catalog_encryption_enabled").hide();
+
+							 </script>
+							 ]]>  
+							</comment>
                        </catalog_encryption_enabled>
                        <encryption_public_key translate="label">
                            <label>Catalog Encryption Public Key</label>
@@ -220,6 +227,13 @@
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
+						   <comment><![CDATA[
+							 <script type='text/javascript'>    
+								$("row_carriers_pbgsp_encryption_public_key").hide();
+
+							 </script>
+							 ]]>  
+							</comment>
                        </encryption_public_key>
                        <notify_catalog_ok translate="label">
                            <label>Notify on Successful Catalog Export</label>
@@ -434,10 +448,19 @@
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
                        </custom_shipment_email_template>
+                       <enablelogging translate="label">
+                           <label>Enable Logging</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <sort_order>283</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </enablelogging>
                        <separate_log_file translate="label">
                            <label>Log in separate file</label>
                            <frontend_type>select</frontend_type>
-                           <sort_order>283</sort_order>
+                           <sort_order>284</sort_order>
                            <frontend_class>shipping-skip-hide</frontend_class>
                            <source_model>adminhtml/system_config_source_yesno</source_model>
                            <show_in_default>1</show_in_default>
@@ -448,7 +471,7 @@
                            <label>Return Address Street 1</label>
                            <frontend_type>text</frontend_type>
 
-                           <sort_order>284</sort_order>
+                           <sort_order>285</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
@@ -457,7 +480,7 @@
                            <label>Return Address City</label>
                            <frontend_type>text</frontend_type>
 
-                           <sort_order>285</sort_order>
+                           <sort_order>286</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
@@ -466,7 +489,7 @@
                            <label>Province/State</label>
                            <frontend_type>text</frontend_type>
 
-                           <sort_order>286</sort_order>
+                           <sort_order>287</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
@@ -475,7 +498,7 @@
                            <label>Country</label>
                            <frontend_type>select</frontend_type>
                            <source_model>adminhtml/system_config_source_country</source_model>
-                           <sort_order>287</sort_order>
+                           <sort_order>288</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
@@ -484,7 +507,7 @@
                            <label>Zip or Postal Code</label>
                            <frontend_type>text</frontend_type>
 
-                           <sort_order>288</sort_order>
+                           <sort_order>289</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
