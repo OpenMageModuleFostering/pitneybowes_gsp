@@ -530,6 +530,15 @@
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
                        </return_address_zip>
+                       <customer_service_number translate="label">
+                           <label>Customer Service Phone Number</label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>290</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </customer_service_number>
                     </fields>
                 </pbgsp>
             </groups>

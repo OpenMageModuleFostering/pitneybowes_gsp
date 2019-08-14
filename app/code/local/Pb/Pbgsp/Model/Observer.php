@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.7)
- * Packaged:      2016-06-01T14:02:28+00:00
- * Last Modified: 2016-04-14T14:05:10+00:00
+ * Product:       Pb_Pbgsp (1.3.8)
+ * Packaged:      2016-06-23T10:40:00+00:00
+ * Last Modified: 2016-06-01T14:02:28+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Observer.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -135,6 +135,8 @@ class Pb_Pbgsp_Model_Observer {
 		Mage::getSingleton("customer/session")->setPbDutyAndTax(0);
 		$mageOrderNumber = Mage::getSingleton('checkout/session')->getLastRealOrderId();
 		$order = Mage::getModel('sales/order')->loadByIncrementId($mageOrderNumber);
+        /* @var Mage_Sales_Model_Order $order */
+
         Pb_Pbgsp_Model_Util::log(" createPbOrder");
 		if ($this->isPbOrder($order)) {
 //            $clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
@@ -154,6 +156,31 @@ class Pb_Pbgsp_Model_Observer {
 			
 			// Save in DB
 
+            if(!$orderNumber) {
+                //order was not saved due to paypal checkout
+                $items = $order->getAllItems();
+                $shipMethod = $order->getShippingMethod();
+                $shipMethod = substr($shipMethod,strlen("pbgsp_"));
+                $address = $order->getShippingAddress();
+                $pbOrder = Pb_Pbgsp_Model_Api::createOrder($items,$shipMethod,$address);
+                if (!$pbOrder) {
+                    Mage::throwException("Unable to create Pb order.");
+                }
+                $orderNumber = Mage::getModel("pb_pbgsp/ordernumber");
+
+                $orderNumber->setCpOrderNumber($pbOrder["orderId"]);
+                $orderNumber->setHubId($pbOrder["shipToHub"]['hubId']);
+                $orderNumber->setHubStreet1($pbOrder["shipToHub"]['hubAddress']['street1']);
+                $orderNumber->setHubStreet2($pbOrder["shipToHub"]['hubAddress']['street2']);
+
+                $orderNumber->setHubProvinceOrState($pbOrder["shipToHub"]['hubAddress']['provinceOrState']);
+                $orderNumber->setHubCountry($pbOrder["shipToHub"]['hubAddress']['country']);
+                $orderNumber->setHubPostalCode($pbOrder["shipToHub"]['hubAddress']['postalOrZipCode']);
+                $orderNumber->setHubCity($pbOrder["shipToHub"]['hubAddress']['city']);
+                $domesticShippingAdress = $address->getName()."</br>".$address->getStreetFull().", ".$address->getCity()."</br> ".$address->getRegion().", ".$address->getCountry().",".$address->getPostcode()."</br> T:".$address->getTelephone();
+                $orderNumber->setOriginalShippingAddress($domesticShippingAdress);
+                $orderNumber->save();
+            }
 			$orderNumber->setMageOrderNumber($mageOrderNumber);
             //$orderNumber->setCpOrderNumber($cpOrderNumber);
             Pb_Pbgsp_Model_Util::log($orderNumber->getHubId());

@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.7)
- * Packaged:      2016-06-01T14:02:28+00:00
- * Last Modified: 2016-04-14T14:05:10+00:00
+ * Product:       Pb_Pbgsp (1.3.8)
+ * Packaged:      2016-06-23T10:40:00+00:00
+ * Last Modified: 2016-06-01T14:02:28+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Api.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -160,7 +160,11 @@ class Pb_Pbgsp_Model_Api
                 ($product->getParentItem() && $product->isChildrenCalculated())) {
                 /* @var Mage_Sales_Model_Order_Item $product */
 
-            	$totalProducts += $product->getQty();
+                $qty = $product->getQty();
+                if(!$qty) {
+                    $qty = $product->getQtyToShip();
+                }
+            	$totalProducts += $qty;
 
 //                Pb_Pbgsp_Model_Util::log('discount amount '. $product->getDiscountAmount());
 //                Pb_Pbgsp_Model_Util::log('Price '. $product->getPrice());
@@ -172,7 +176,7 @@ class Pb_Pbgsp_Model_Api
                                               "lineId" => $product->getSku(),
                                               "commodity" => array('merchantComRefId' => $product->getSku()),
                                               "unitPrice" => array('price' => array('value' => $price)),
-                                              "quantity" => intval($product->getQty())
+                                              "quantity" => intval($qty)
 
                                               )
                                          );
@@ -213,13 +217,18 @@ class Pb_Pbgsp_Model_Api
         $familyName = $address->getLastname(); //when it comes from paypal express, lastname is null, Kamran, Bigpixel Studio,
         if(!$familyName)
             $familyName = $address->getFirstname();
+        $phone = $address->getTelephone();
+        if(!$phone)
+            $phone = Pb_Pbgsp_Model_Credentials::getCustomerServiceNumber();
+        if(!$phone)
+            $phone = '555-555-1234';
         $consignee = array(
             'familyName' => $familyName,
             'givenName' => $address->getFirstname(),
             'email' => $email,
             'phoneNumbers' => array(
                 array(
-                    'number' => $address->getTelephone(),
+                    'number' => $phone,
                     'type' => 'other'
                 )
             )
@@ -301,9 +310,15 @@ class Pb_Pbgsp_Model_Api
 //							 ->setData('order_id', $shipment->getData('order_id'))
 //							 ->save();
 		}
-		
-		
-										 
+
+        //Pb_Pbgsp_Model_Util::log(get_class($number));
+        if(get_class($number) == 'SimpleXMLElement') {
+            $json = json_encode($number);
+            $array = json_decode($json,TRUE);
+            $number = $array[0];
+        }
+
+
         $requestBody = array(
             'merchantOrderNumber' => $cpOrderNumber,
             'parcelIdentificationNumber' => $number,
@@ -483,7 +498,13 @@ class Pb_Pbgsp_Model_Api
 
 
 
+
         $billingAddress = $order->getBillingAddress();
+        $phone = $billingAddress->getTelephone();
+        if(!$phone)
+            $phone = Pb_Pbgsp_Model_Credentials::getCustomerServiceNumber();
+        if(!$phone)
+            $phone = '555-555-1234';
         $confirm = array(
             'transactionId' => $order->getRealOrderId(),
             'merchantOrderNumber' => $order->getRealOrderId(),
@@ -493,7 +514,7 @@ class Pb_Pbgsp_Model_Api
                 'email' => $order->getCustomerEmail(),
                 'phoneNumbers' => array(
                     array(
-                        'number' => $billingAddress->getTelephone(),
+                        'number' => $phone ,
                         'type' => 'other'
                     )
                  )),
