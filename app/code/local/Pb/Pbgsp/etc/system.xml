@@ -20,15 +20,23 @@
 								<show_in_website>1</show_in_website>
 								<show_in_store>1</show_in_store>
 						</version>
-                        <active translate="label">
-                            <label>Enabled</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>1</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </active>
+                       <active translate="label">
+                           <label>Enabled</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <sort_order>1</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </active>
+                       <shipping_heading1 translate="label">
+                           <label>Core Settings</label>
+                           <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                           <sort_order>2</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                       </shipping_heading1>
+
 						<environment translate="label">
                             <label>Environment</label>
                             <frontend_type>select</frontend_type>
@@ -100,6 +108,7 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </checkout_endpoint>
+
                        <order_mgmt_api translate="label">
                            <label>ASN Endpoint</label>
                            <frontend_type>text</frontend_type>
@@ -170,6 +179,59 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </ftpdir>
+                       <admin_email translate="label">
+                           <label>Admin Email</label>
+                           <frontend_type>text</frontend_type>
+                           <validate>validate-email</validate>
+                           <sort_order>81</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </admin_email>
+                       <enablelogging translate="label">
+                           <label>Enable Logging</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <sort_order>82</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </enablelogging>
+                       <separate_log_file translate="label">
+                           <label>Log in separate file</label>
+                           <frontend_type>select</frontend_type>
+                           <sort_order>83</sort_order>
+                           <frontend_class>shipping-skip-hide</frontend_class>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </separate_log_file>
+                       <showmethod translate="label">
+                           <label>Show Method if Not Applicable</label>
+                           <frontend_type>select</frontend_type>
+                           <sort_order>84</sort_order>
+                           <frontend_class>shipping-skip-hide</frontend_class>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>0</show_in_store>
+                       </showmethod>
+                       <specificerrmsg translate="label">
+                           <label>Displayed Error Message</label>
+                           <frontend_type>textarea</frontend_type>
+                           <sort_order>85</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </specificerrmsg>
+                       <shipping_heading2 translate="label">
+                           <label>Catalog Export</label>
+                           <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                           <sort_order>86</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                       </shipping_heading2>
 						<catalog_diff translate="label">
                             <label>Catalog update period (hours, min 1 hour)</label>
                             <frontend_type>text</frontend_type>
@@ -204,15 +266,7 @@
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
                        </catalog_sender_id>
-                       <admin_email translate="label">
-                           <label>Admin Email</label>
-                           <frontend_type>text</frontend_type>
-                           <validate>validate-email</validate>
-                           <sort_order>110</sort_order>
-                           <show_in_default>1</show_in_default>
-                           <show_in_website>1</show_in_website>
-                           <show_in_store>1</show_in_store>
-                       </admin_email>
+
                        <catalog_encryption_enabled translate="label">
                            <label>Catalog Encryption Enabled</label>
                            <frontend_type>select</frontend_type>
@@ -262,25 +316,51 @@
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
                        </notify_catalog_err>
-                       <asn_generation_enabled translate="label">
-                           <label>Generate ASN</label>
-                           <frontend_type>select</frontend_type>
-                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                       <shipping_heading3 translate="label">
+                           <label>Shipping Settings</label>
+                           <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                           <sort_order>123</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                       </shipping_heading3>
+                       <sort_order translate="label">
+                           <label>Sort order</label>
+                           <frontend_type>text</frontend_type>
+                           <sort_order>124</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </sort_order>
+                       <title translate="label">
+                           <label>Title</label>
+                           <validate>required-entry</validate>
+                           <frontend_type>text</frontend_type>
+                           <validate>required-entry</validate>
                            <sort_order>125</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
-                       </asn_generation_enabled>
-                       <generate_asn_on_add_track translate="label">
-                           <label>Generate ASN after adding tracking number</label>
+                       </title>
+                       <sallowspecific translate="label">
+                           <label>Ship to applicable countries</label>
                            <frontend_type>select</frontend_type>
-                           <source_model>adminhtml/system_config_source_yesno</source_model>
                            <sort_order>126</sort_order>
+                           <frontend_class>shipping-applicable-country</frontend_class>
+                           <source_model>adminhtml/system_config_source_shipping_allspecificcountries</source_model>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
-                       </generate_asn_on_add_track>
-					   <override_shipping_address_enabled translate="label">
+                       </sallowspecific>
+                       <specificcountry translate="label">
+                           <label>Ship to Specific countries</label>
+                           <frontend_type>multiselect</frontend_type>
+                           <sort_order>127</sort_order>
+                           <source_model>adminhtml/system_config_source_country</source_model>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </specificcountry>
+                       <override_shipping_address_enabled translate="label">
                            <label>Override Shipping Address</label>
                            <frontend_type>select</frontend_type>
                            <source_model>adminhtml/system_config_source_yesno</source_model>
@@ -288,96 +368,12 @@
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
-                        </override_shipping_address_enabled>
-                        <!--
-                        If the free_shipping_enable flag enable, the system will check free_shipping_subtotal to give free shipping
-                        otherwise will use shopping cart price rule behaviour
-                        -->
-                        <free_shipping_enable translate="label">
-                            <label>Free shipping with minimum order amount</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_enabledisable</source_model>
-                            <sort_order>160</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </free_shipping_enable>
-                        <free_shipping_subtotal translate="label">
-                            <label>Minimum order amount for free shipping</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>170</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </free_shipping_subtotal>
-                       <free_tax_enable translate="label">
-                           <label>Enable zero tax for customer</label>
-                           <frontend_type>select</frontend_type>
-                           <source_model>adminhtml/system_config_source_enabledisable</source_model>
-                           <sort_order>175</sort_order>
-                           <show_in_default>1</show_in_default>
-                           <show_in_website>1</show_in_website>
-                           <show_in_store>1</show_in_store>
-                       </free_tax_enable>
-
-                       <sort_order translate="label">
-                            <label>Sort order</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>230</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </sort_order>
-                        <title translate="label">
-                            <label>Title</label>
-							<validate>required-entry</validate>
-                            <frontend_type>text</frontend_type>
-							<validate>required-entry</validate>
-                            <sort_order>240</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </title>
-                       <!-- added by BigPixel 6/5/2012 -->
-                       <handlingfee translate="label">
-                           <label>Handling Fee</label>
-                           <frontend_type>text</frontend_type>
-                           <sort_order>241</sort_order>
-                           <show_in_default>1</show_in_default>
-                           <show_in_website>1</show_in_website>
-                           <show_in_store>1</show_in_store>
-                       </handlingfee>
-                       <handlingoption translate="label">
-                           <label>Handling Fee Apply As</label>
-                           <frontend_type>select</frontend_type>
-                           <source_model>pb_pbgsp/handlingoptions</source_model>
-                           <sort_order>242</sort_order>
-                           <show_in_default>1</show_in_default>
-                           <show_in_website>1</show_in_website>
-                           <show_in_store>1</show_in_store>
-                       </handlingoption>
-                       <domestic_shipping_fee translate="label">
-                           <label>Domestic Shipping Fee</label>
-                           <frontend_type>text</frontend_type>
-                           <sort_order>243</sort_order>
-                           <show_in_default>1</show_in_default>
-                           <show_in_website>1</show_in_website>
-                           <show_in_store>1</show_in_store>
-                       </domestic_shipping_fee>
-                       <domestic_shipping_option translate="label">
-                           <label>Apply Domestic shipping fee as</label>
-                           <frontend_type>select</frontend_type>
-                           <source_model>pb_pbgsp/handlingoptions</source_model>
-                           <sort_order>244</sort_order>
-                           <show_in_default>1</show_in_default>
-                           <show_in_website>1</show_in_website>
-                           <show_in_store>1</show_in_store>
-                       </domestic_shipping_option>
+                       </override_shipping_address_enabled>
                        <delivery_adjustment_min_days translate="label">
                            <label>Minimum Delivery Days to PB Hub</label>
                            <frontend_type>text</frontend_type>
                            <validate>validate-number</validate>
-                           <sort_order>245</sort_order>
+                           <sort_order>129</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
@@ -386,74 +382,16 @@
                            <label>Maximum Delivery Days to PB Hub</label>
                            <frontend_type>text</frontend_type>
                            <validate>validate-number</validate>
-                           <sort_order>246</sort_order>
+                           <sort_order>130</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
                        </delivery_adjustment_max_days>
-                       <!-- added by BigPixel 6/5/2012 -->
-                        <sallowspecific translate="label">
-                            <label>Ship to applicable countries</label>
-                            <frontend_type>select</frontend_type>
-                            <sort_order>250</sort_order>
-                            <frontend_class>shipping-applicable-country</frontend_class>
-                            <source_model>adminhtml/system_config_source_shipping_allspecificcountries</source_model>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </sallowspecific>
-                        <specificcountry translate="label">
-                            <label>Ship to Specific countries</label>
-                            <frontend_type>multiselect</frontend_type>
-                            <sort_order>251</sort_order>
-                            <source_model>adminhtml/system_config_source_country</source_model>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </specificcountry>
-                        <showmethod translate="label">
-                            <label>Show Method if Not Applicable</label>
-                            <frontend_type>select</frontend_type>
-                            <sort_order>260</sort_order>
-                            <frontend_class>shipping-skip-hide</frontend_class>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </showmethod>
-                        <specificerrmsg translate="label">
-                            <label>Displayed Error Message</label>
-                            <frontend_type>textarea</frontend_type>
-                            <sort_order>270</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </specificerrmsg>
-                       <!-- test comments -->
-                       <trackinglink translate="label">
-                           <label>Enable Tracking Links</label>
-                           <frontend_type>select</frontend_type>
-                           <source_model>adminhtml/system_config_source_yesno</source_model>
-                           <sort_order>271</sort_order>
-                           <show_in_default>1</show_in_default>
-                           <show_in_website>1</show_in_website>
-                           <show_in_store>1</show_in_store>
-                       </trackinglink>
-                       <suppress_domestic_tracking translate="label">
-                           <label>Suppress Domestic Leg Tracking</label>
-                           <frontend_type>select</frontend_type>
-                           <sort_order>280</sort_order>
-                           <frontend_class>shipping-skip-hide</frontend_class>
-                           <source_model>adminhtml/system_config_source_yesno</source_model>
-                           <show_in_default>1</show_in_default>
-                           <show_in_website>1</show_in_website>
-                           <show_in_store>1</show_in_store>
-                       </suppress_domestic_tracking>
                        <custom_shipment_email_subject translate="label">
                            <label>Custom Shipment Email Subject</label>
                            <frontend_type>text</frontend_type>
 
-                           <sort_order>281</sort_order>
+                           <sort_order>131</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
@@ -461,30 +399,145 @@
                        <custom_shipment_email_template>
                            <label>Custom Shipment Email</label>
                            <frontend_type>textarea</frontend_type>
-                           <sort_order>282</sort_order>
+                           <sort_order>132</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
                        </custom_shipment_email_template>
-                       <enablelogging translate="label">
-                           <label>Enable Logging</label>
+                       <shipping_heading4 translate="label">
+                           <label>Fees</label>
+                           <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                           <sort_order>133</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                       </shipping_heading4>
+                       <free_shipping_enable translate="label">
+                           <label>Free shipping with minimum order amount</label>
                            <frontend_type>select</frontend_type>
-                           <source_model>adminhtml/system_config_source_yesno</source_model>
-                           <sort_order>283</sort_order>
+                           <source_model>adminhtml/system_config_source_enabledisable</source_model>
+                           <sort_order>134</sort_order>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
-                       </enablelogging>
-                       <separate_log_file translate="label">
-                           <label>Log in separate file</label>
+                       </free_shipping_enable>
+                       <free_shipping_subtotal translate="label">
+                           <label>Minimum order amount for free shipping</label>
+                           <frontend_type>text</frontend_type>
+                           <sort_order>135</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </free_shipping_subtotal>
+                       <handlingfee translate="label">
+                           <label>Handling Fee</label>
+                           <frontend_type>text</frontend_type>
+                           <sort_order>140</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </handlingfee>
+                       <handlingoption translate="label">
+                           <label>Handling Fee Apply As</label>
                            <frontend_type>select</frontend_type>
-                           <sort_order>284</sort_order>
+                           <source_model>pb_pbgsp/handlingoptions</source_model>
+                           <sort_order>145</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </handlingoption>
+                       <domestic_shipping_fee translate="label">
+                           <label>Domestic Shipping Fee</label>
+                           <frontend_type>text</frontend_type>
+                           <sort_order>150</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </domestic_shipping_fee>
+                       <domestic_shipping_option translate="label">
+                           <label>Apply Domestic shipping fee as</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>pb_pbgsp/handlingoptions</source_model>
+                           <sort_order>155</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </domestic_shipping_option>
+                       <free_tax_enable translate="label">
+                           <label>Enable zero tax for customer</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_enabledisable</source_model>
+                           <sort_order>160</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </free_tax_enable>
+
+                       <shipping_heading4 translate="label">
+                           <label>Fulfilment Tracking</label>
+                           <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                           <sort_order>165</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                       </shipping_heading4>
+
+                       <trackinglink translate="label">
+                           <label>Enable Tracking Links</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <sort_order>170</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </trackinglink>
+                       <suppress_domestic_tracking translate="label">
+                           <label>Suppress Domestic Leg Tracking</label>
+                           <frontend_type>select</frontend_type>
+                           <sort_order>175</sort_order>
                            <frontend_class>shipping-skip-hide</frontend_class>
                            <source_model>adminhtml/system_config_source_yesno</source_model>
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
-                       </separate_log_file>
+                       </suppress_domestic_tracking>
+
+                       <asn_generation_enabled translate="label">
+                           <label>Generate ASN</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <sort_order>180</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </asn_generation_enabled>
+                       <generate_asn_on_add_track translate="label">
+                           <label>Generate ASN after adding tracking number</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <sort_order>185</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </generate_asn_on_add_track>
+
+                        <!--
+                        If the free_shipping_enable flag enable, the system will check free_shipping_subtotal to give free shipping
+                        otherwise will use shopping cart price rule behaviour
+                        -->
+
+
+
+
+
+                       <!-- added by BigPixel 6/5/2012 -->
+
+
+                       <!-- added by BigPixel 6/5/2012 -->
+
+
+                       <!-- test comments -->
+
+
+
                        <return_address_street1 translate="label">
                            <label>Return Address Street 1</label>
                            <frontend_type>text</frontend_type>
@@ -539,8 +592,137 @@
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
                        </customer_service_number>
+                       <shipping_heading5 translate="label">
+                           <label>Seller Settings</label>
+                           <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                           <sort_order>300</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                       </shipping_heading5>
+                       <seller_active translate="label">
+                           <label>Enable Seller Settings</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>adminhtml/system_config_source_yesno</source_model>
+                           <sort_order>301</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_active>
+                       <seller_id translate="label">
+                           <label>Seller ID</label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>305</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_id>
+
+                       <seller_type translate="label">
+                           <label>Seller Type</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>pb_pbgsp/sellertype</source_model>
+
+                           <sort_order>310</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_type>
+                       <seller_family_name translate="label">
+                           <label>Family Name</label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>315</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_family_name>
+                       <seller_given_name translate="label">
+                           <label>Given Name</label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>320</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_given_name>
+                       <seller_email translate="label">
+                           <label>Email ID</label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>325</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_email>
+                       <seller_phone translate="label">
+                           <label>Phone Number</label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>330</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_phone>
+
+                       <seller_phone_type translate="label">
+                           <label>Phone Type</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>pb_pbgsp/phonetype</source_model>
+
+                           <sort_order>335</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_phone_type>
+                       <seller_street_address translate="label">
+                           <label>Street Address </label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>340</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_street_address>
+                       <seller_city translate="label">
+                           <label>City </label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>345</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_city>
+                       <seller_province_state translate="label">
+                           <label>Province or State </label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>350</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_province_state>
+                       <seller_zip translate="label">
+                           <label>Zip/Postal Code </label>
+                           <frontend_type>text</frontend_type>
+
+                           <sort_order>355</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_zip>
+                       <seller_country translate="label">
+                           <label>Country</label>
+                           <frontend_type>select</frontend_type>
+                           <sort_order>360</sort_order>
+                           <source_model>adminhtml/system_config_source_country</source_model>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>1</show_in_website>
+                           <show_in_store>1</show_in_store>
+                       </seller_country>
                     </fields>
                 </pbgsp>
+
             </groups>
         </carriers>
 

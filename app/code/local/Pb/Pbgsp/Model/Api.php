@@ -269,29 +269,29 @@ class Pb_Pbgsp_Model_Api
 		
 		// added seller information 30/06/2016
 		$contactdetail=array(
-		'familyName' => Mage::getStoreConfig('carriers/pbgsp_setting/family_name'),
-		'givenName' => Mage::getStoreConfig('carriers/pbgsp_setting/given_name'),
-		'email' => Mage::getStoreConfig('carriers/pbgsp_setting/seller_email'),
+		'familyName' => Mage::getStoreConfig('carriers/pbgsp/seller_family_name'),
+		'givenName' => Mage::getStoreConfig('carriers/pbgsp/seller_given_name'),
+		'email' => Mage::getStoreConfig('carriers/pbgsp/seller_email'),
 		'phoneNumbers'=>  array(
                 array(
-                    'number' => Mage::getStoreConfig('carriers/pbgsp_setting/phone_number'),
-                    'type' => Mage::getStoreConfig('carriers/pbgsp_setting/phone_number_type')
+                    'number' => Mage::getStoreConfig('carriers/pbgsp/seller_phone'),
+                    'type' => Mage::getStoreConfig('carriers/pbgsp/seller_phone_type')
                 )
             )
 		);
 		
 		$sellerAddress= array(
-		'street1' => Mage::getStoreConfig('carriers/pbgsp_setting/address_street1'),
-		'city' => Mage::getStoreConfig('carriers/pbgsp_setting/address_city'),
-		'provinceOrState' => Mage::getStoreConfig('carriers/pbgsp_setting/address_provinenceorstate'),
-		'postalOrZipCode' => Mage::getStoreConfig('carriers/pbgsp_setting/address_postalorzipcode'),
-		'country' => Mage::getStoreConfig('carriers/pbgsp_setting/address_country'),
+		'street1' => Mage::getStoreConfig('carriers/pbgsp/seller_street_address'),
+		'city' => Mage::getStoreConfig('carriers/pbgsp/seller_city'),
+		'provinceOrState' => Mage::getStoreConfig('carriers/pbgsp/seller_province_state'),
+		'postalOrZipCode' => Mage::getStoreConfig('carriers/pbgsp/seller_zip'),
+		'country' => Mage::getStoreConfig('carriers/pbgsp/seller_country'),
 		);
 		
 		$seller= array(
-		'sellerID'=> Mage::getStoreConfig('carriers/pbgsp_setting/seller_id'),
-		//'sellerType'=> Mage::getStoreConfig('carriers/pbgsp_setting/seller_type'),
-		'contactdetail'=>$contactdetail,
+		'sellerId'=> Mage::getStoreConfig('carriers/pbgsp/seller_id'),
+		'sellerType'=> Mage::getStoreConfig('carriers/pbgsp/seller_type'),
+		'contactDetails'=>$contactdetail,
 		'address'=>$sellerAddress	
 		);
 		
@@ -305,10 +305,12 @@ class Pb_Pbgsp_Model_Api
             'basketLines' => $basketLines,
             'toHubTransportations' => $toHubTransportations,
             'consignee' => $consignee,
-            'shippingAddress' => $shippingAddress,
-//'seller' => $seller
-        );
+            'shippingAddress' => $shippingAddress
 
+        );
+        if(Mage::getStoreConfig('carriers/pbgsp/seller_active')) {
+            $basket['seller'] = $seller;
+        }
 
         return $basket;
 
