@@ -1,9 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.1.0)
- * Packaged:      2015-09-9T12:10:00+00:00
- * Last Modified: 2015-09-1T15:12:28+00:00
-
+ * Product:       Pb_Pbgsp (1.0.3)
+ * Packaged:      2015-09-1T15:12:28+00:00
+ * Last Modified: 2015-08-25T15:12:28+00:00
 
 
 
@@ -73,8 +72,9 @@ class Pb_Pbgsp_Model_Observer {
                         $items[] = $item;
 
                     }
-
+					
                     $parcelResponse = Pb_Pbgsp_Model_Api::generateInboundParcelNumber($shipment,$items,$order,$cpOrderNumber);
+					
                     if(array_key_exists('errors',$parcelResponse)) {
                         Pb_Pbgsp_Model_Util::log("Error generating inbound parcel");
                         Pb_Pbgsp_Model_Util::log($parcelResponse);
@@ -85,6 +85,7 @@ class Pb_Pbgsp_Model_Observer {
                         $cpParcel->setMageOrderNumber( $order->getRealOrderId());
                         $cpParcel->setPbOrderNumber( $cpOrderNumber);
                         $cpParcel->save();
+						
                         Pb_Pbgsp_Model_Util::log('Inbound Parcel Number Saved');
                     }
 
@@ -152,7 +153,9 @@ class Pb_Pbgsp_Model_Observer {
             foreach ($clearPathOrders as $cpOrder) {
 				$cpOrderNumber = $cpOrder -> getCpOrderNumber();
 				if (Pb_Pbgsp_Model_Api::cancelOrder($cpOrderNumber)) {
+					
 						Pb_Pbgsp_Model_Util::log(" $mageOrderNumber order is cancel in PB");
+						Mage::getSingleton('core/session')->addSuccess('PB order cancel successfully');
 				}  
 			}
 		}
@@ -163,7 +166,7 @@ class Pb_Pbgsp_Model_Observer {
 	}
 	
 	public function saveShippingMethod($observer) {
-       // Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.saveShippingMethod');
+        //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.saveShippingMethod');
 		//TODO: If anything fails here I need to fail the checkout process.
 		$address = $observer->getQuote()->getShippingAddress();
 		if ($this->isPbOrder($address)) {
@@ -176,8 +179,15 @@ class Pb_Pbgsp_Model_Observer {
 			}
 
             $tax = $order['order']['totalImportation']['total']['value'];
+
             if(Pb_Pbgsp_Model_Credentials::isFreeTaxEnabled())
                 $tax = 0;
+            Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD($tax);
+            if(Mage::app()->getStore()->getCurrentCurrencyCode() != 'USD') {
+
+                $tax = Mage::app()->getStore()->convertPrice($tax);
+
+            }
             Mage::getSingleton("customer/session")->setPbDutyAndTax($tax);
 
             $orderNumber = Mage::getModel("pb_pbgsp/ordernumber");
@@ -196,6 +206,7 @@ class Pb_Pbgsp_Model_Observer {
             Pb_Pbgsp_Model_Util::log(" not clearpath order");
 			Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
 			Mage::getSingleton("customer/session")->setPbOrderNumber(false);
+            Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
 		}
 	}
 

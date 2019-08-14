@@ -31,6 +31,11 @@ In order to take advantage of the file encryption setting in the extension confi
 ========================================================
 CHANGELOG
 ========================================================
+v. 1.1.1
+
+Corrected currency conversion logic to not request rate from PB but run conversion directly in Magento
+
+
 v. 1.1.0
 
 Added logic to cancel the order in the PB system when a PB order is cancelled in Magento.

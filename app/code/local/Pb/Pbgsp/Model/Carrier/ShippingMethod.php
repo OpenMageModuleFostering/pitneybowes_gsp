@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.1.0)
- * Packaged:      2015-09-9T12:10:00+00:00
- * Last Modified: 2015-09-1T15:12:28+00:00
+ * Product:       Pb_Pbgsp (1.1.1)
+ * Packaged:      2015-09-14T12:11:20+00:00
+ * Last Modified: 2015-09-9T12:10:00+00:00
 
 
 
@@ -144,7 +144,15 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
 
         else {
             Pb_Pbgsp_Model_Util::log('Free tax disabled');
-            $method->setTax($quote['totalImportation']['total']['value']);
+            $tax = $quote['totalImportation']['total']['value'];
+            Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD($tax);
+            if(Mage::app()->getStore()->getCurrentCurrencyCode() != 'USD') {
+
+                $tax = Mage::app()->getStore()->convertPrice($tax);
+
+            }
+            Mage::getSingleton("customer/session")->setPbDutyAndTax($tax);
+            $method->setTax($tax);
         }
 
         return $method;

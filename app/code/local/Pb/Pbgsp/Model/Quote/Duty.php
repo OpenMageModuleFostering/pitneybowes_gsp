@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.1.0)
- * Packaged:      2015-09-9T12:10:00+00:00
- * Last Modified: 2015-09-1T15:12:28+00:00
+ * Product:       Pb_Pbgsp (1.1.1)
+ * Packaged:      2015-09-14T12:11:20+00:00
+ * Last Modified: 2015-09-9T12:10:00+00:00
 
 
 
@@ -29,7 +29,13 @@ class Pb_Pbgsp_Model_Quote_Duty extends Mage_Tax_Model_Sales_Total_Quote_Tax
     
     public function getDutyAndTax() {
         //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.getDutyAndTax');
-	    return Mage::getSingleton("customer/session")->getPbDutyAndTax();
+	    $amount = Mage::getSingleton("customer/session")->getPbDutyAndTax();
+        if($amount) {
+            if(Mage::app()->getStore()->getCurrentCurrencyCode() == 'USD')
+                return Mage::getSingleton("customer/session")->getPbDutyAndTaxUSD();
+        }
+
+        return $amount;
     }
 
     /**
@@ -40,7 +46,7 @@ class Pb_Pbgsp_Model_Quote_Duty extends Mage_Tax_Model_Sales_Total_Quote_Tax
      */
     public function collect(Mage_Sales_Model_Quote_Address $address)
     {
-        //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.collect');
+       // Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.collect');
         parent::collect($address);
 
 		if ($this->getDutyAndTax()) {
@@ -65,16 +71,18 @@ class Pb_Pbgsp_Model_Quote_Duty extends Mage_Tax_Model_Sales_Total_Quote_Tax
     public function fetch(Mage_Sales_Model_Quote_Address $address)
     {
         //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.fetch');
-        
-		if ($this->getDutyAndTax()) {
+        $amount = $this->getDutyAndTax();
+		if ($amount) {
 			if($this->dutyDisplayed) {
 				return $this;
 			}
 			$this->dutyDisplayed = true;
 	
-			$amount = $address->getTaxAmount();
+			//$amount = $address->getTaxAmount();
+            //$amount = Mage::app()->getStore()->convertPrice($amount);
+
 			$title = "Duty & Taxes";
-			Pb_Pbgsp_Model_Util::log("Add Duty & Taxes at Duty");
+			Pb_Pbgsp_Model_Util::log("Add Duty & Taxes at Duty:" . $amount);
 			$address->addTotal(array(
 								 'code'  => $this->getCode(),
 							     'title' => $title,
