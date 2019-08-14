@@ -1,0 +1,66 @@
+========================================================
+INSTALLATION
+========================================================
+Disclaimer: We recommend to install ANY extension you purchase/download in a testing environment before deploying it to your production environment. Please also backup your Magento installation (files and database) before installing any extension and make sure no conflicting extensions are installed. All extensions are tested in clean Magento installations without third party extensions and we can't guarantee for compatibility with third party extensions.
+
+If you're using the Magento compiler - or if you are not sure if you're doing so - please log into the Magento backend and go to System > Tools > Compilation and turn it off. If you don't do so there's a good chance you'll temporarily break your Magento installation. Also, it is recommended to disable the cache before installing any extension.
+
+Open the extension ZIP file and extract it to a directory on your computer using a tool like WinRar, WinZIP or similar.
+
+Upload the extracted folders and files into the root directory of your Magento installation. The root directory of Magento is the folder that contains the directories "app", "js", "skin", "lib" and more. All folders should match the existing folder structure. If one of our extensions is already installed and you're updating it, make sure to overwrite the existing files of the extension.
+
+Go to System > Cache Management and click both the 'Flush Magento Cache' as well as the 'Flush Cache Storage' button. This is required to activate the extension.
+
+Log out of the Magento admin and log back in - you'll see a 404 Error when trying to open the configuration section if you don't log out / log in once.
+
+If you're using the Magento compiler and had it enabled before installing this extension, go to System > Tools > Compilation and click on 'Run Compilation Process' to re-compile Magento and enable it again by clicking on 'Enable'.
+
+========================================================
+CONFIGURATION
+========================================================
+Attention!! Be sure to logout & re-login before configuration else you will get '404 Error (Page not found)' in System > Configuration Page.
+1> After installation go to Admin:
+System >> Configuration >> Shipping Methods >> Pitney Bowes PBGSP >> Manage your setting here.
+Be sure to review the full documentation found here http://wiki.ecommerce.pb.com
+
+Your Pitney Bowes project manager will provide you with the necessary credentials needed to complete the installation.
+
+GNUPG encryption
+In order to take advantage of the file encryption setting in the extension configs your server will need to have the GNUGP module installed. You can find out more about that here: https://www.gnupg.org
+
+========================================================
+CHANGELOG
+========================================================
+v. 1.0.2
+
+Added compatibility to run in php 5.6.x 
+
+
+v. 1.0.2
+
+Resolved issue where orders with shipments were not passing additional ASNs. Now an ASN is generated for each shipment per order
+
+v. 1.0.1
+
+Fixed a production issue when exportedFiles variable is null
+Added City to the Pitney Bowes Hub address provided to store admin on order details
+Update PB tracking URL to https://parceltracking.pb.com/app/#/dashboard/UPIDHERE
+Fixed issue with international tracking url
+Fixed a production issue when exportedFiles variable is null
+Fixed issue with ASN request not sending correct commodity quantity.
+Made the PGP extension not required for installation thru the Magento Connect process.
+Added Input values in config to allow customer return address when shipment is rejected
+
+v. 1.0.0 - 
+- Initial Application build, see documentation for details
+
+
+========================================================
+BUGS / NEW FEATURE REQUEST
+========================================================
+PB-Magento-GSP-Support@pb.com
+#################(RAY, we can add a support email here that will be PB specific but that will also forward to my team)
+========================================================
+FOR SUPPORT
+========================================================
+PB-Magento-GSP-Support@pb.com

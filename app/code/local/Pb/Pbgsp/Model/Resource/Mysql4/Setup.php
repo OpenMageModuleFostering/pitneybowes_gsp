@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.2)
- * Packaged:      2015-09-25T15:12:28+00:00
- * Last Modified: 2015-09-21T15:12:31+00:00
+ * Product:       Pb_Pbgsp (1.0.3)
+ * Packaged:      2015-09-1T15:12:28+00:00
+ * Last Modified: 2015-08-25T15:12:28+00:00
+
 
 
  * File:          app/code/local/Pb/Pbgsp/Model/Resource/Mysql4/Setup.php
