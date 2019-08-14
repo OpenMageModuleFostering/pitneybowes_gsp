@@ -31,6 +31,20 @@ In order to take advantage of the file encryption setting in the extension confi
 ========================================================
 CHANGELOG
 ========================================================
+
+v. 1.3.0
+
+Added admin interface for managing categories to be exported in the catalog. Store managers can now quickly enable and disable categories to be exported to PB.
+
+Adjusted catalog export default preferences to 100k products
+
+Catalog file naming change when multiple files are exported per catalog. (Changed file suffix to 00001, 00002, 00003, etc)
+
+added a check if the ASN has already been generated for a shipment, do not create a new ASN if yes.
+
+Fixed error when checkout with paypal express. The lastname was not set and the PB API throws an error when last name isn't set.
+
+
 v. 1.2.3
 
 Fixed an issue with 3rd party checkout extensions where shipping  wouldn’t show correctly when switching back and forth between US and International locations

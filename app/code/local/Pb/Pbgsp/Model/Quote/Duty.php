@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.2.3)
- * Packaged:      2015-11-04T12:13:20+00:00
- * Last Modified: 2015-10-21T12:09:20+00:00
+ * Product:       Pb_Pbgsp (1.3.0)
+ * Packaged:      2015-11-12T06:33:00+00:00
+ * Last Modified: 2015-11-04T12:13:20+00:00
 
 
 
@@ -57,7 +57,7 @@ class Pb_Pbgsp_Model_Quote_Duty extends Mage_Tax_Model_Sales_Total_Quote_Tax
             if(!(strpos($activeCountries,$address->getCountryId()) !== false)) {
                 //Pb_Pbgsp_Model_Util::log($address->getCountryId().' not found');
                 Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
-                Mage::getSingleton("customer/session")->setPbOrderNumber(false);
+
                 Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
                 return $this;
             }

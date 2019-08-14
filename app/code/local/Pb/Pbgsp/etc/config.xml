@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.2.3</version>
+            <version>1.3.0</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -188,6 +188,12 @@
             </totals>
         </pdf>
 
+        <helpers>
+            <pbgsp>
+                <class>Pb_Pbgsp_Helper</class>
+            </pbgsp>
+
+        </helpers>
     </global>
     <resources>
         <sales_setup>
@@ -501,6 +507,18 @@
             </pb_generateASN>
         </jobs>
     </crontab>
+
+    <admin>
+        <routers>
+            <pbgsp>
+                <use>admin</use>
+                <args>
+                    <module>Pb_Pbgsp</module>
+                    <frontName>pbgsp</frontName>
+                </args>
+            </pbgsp>
+        </routers>
+    </admin>
     <adminhtml>
         <events>
             <!--<sales_order_save_commit_after>-->
@@ -523,15 +541,38 @@
                 </observers>
             </order_cancel_after>
 	    </events>
-        <!--<translate>-->
-            <!--<modules>-->
-                <!--<translations>-->
-                    <!--<files>-->
-                        <!--<default>Pb_Pbgsp.csv</default>-->
-                    <!--</files>-->
-                <!--</translations>-->
-            <!--</modules>-->
-        <!--</translate>-->
+
+            <menu>
+                <pbgsp module="pbgsp">
+                    <title>PBGSP</title>
+                    <sort_order>71</sort_order>
+                    <children>
+                        <items module="pbgsp">
+                            <title>Category Settings</title>
+                            <sort_order>0</sort_order>
+                            <action>pbgsp/adminhtml_categorysettings</action>
+                        </items>
+                    </children>
+                </pbgsp>
+            </menu>
+            <acl>
+                <resources>
+                    <all>
+                        <title>Allow Everything</title>
+                    </all>
+                    <admin>
+                        <children>
+                            <Pb_Pbgsp>
+                                <title>PBGSP Module</title>
+                                <sort_order>10</sort_order>
+                            </Pb_Pbgsp>
+                        </children>
+                    </admin>
+                </resources>
+            </acl>
+
+
+
     </adminhtml>
 
 </config> 

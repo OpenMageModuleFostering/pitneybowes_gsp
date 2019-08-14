@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.2.3)
- * Packaged:      2015-11-04T12:13:20+00:00
- * Last Modified: 2015-10-21T12:09:20+00:00
+ * Product:       Pb_Pbgsp (1.3.0)
+ * Packaged:      2015-11-12T06:33:00+00:00
+ * Last Modified: 2015-11-04T12:13:20+00:00
 
 
 
@@ -16,11 +16,12 @@ class Pb_Pbgsp_Model_Observer {
 	
 	public function isPbOrder($address) {
 		$shipMethod = $address->getShippingMethod();
+        Pb_Pbgsp_Model_Util::log("Shipping method". $shipMethod);
 		$len = strlen("pbgsp_");
 		if (strlen($shipMethod) > $len && substr($shipMethod,0,$len) == "pbgsp_") {
 			return true;
 		}
-		Pb_Pbgsp_Model_Util::log("Shipping method". $shipMethod);
+
 		return false;
 
 	}
@@ -57,8 +58,10 @@ class Pb_Pbgsp_Model_Observer {
                 //check if ASN already generated or not
                 $parcel = Mage::getModel("pb_pbgsp/inboundparcel")-> getCollection();
                 $parcel -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
-//                if(count($parcel) > 0)
-//                    return;
+                $parcel->addFieldToFilter('mage_order_shipment_number',$shipId);
+
+                if(count($parcel) > 0)
+                    return;
                 Pb_Pbgsp_Model_Util::log("Generting ASN.");
                 $clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
                 $clearPathOrders -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
@@ -121,7 +124,20 @@ class Pb_Pbgsp_Model_Observer {
 		$order = Mage::getModel('sales/order')->loadByIncrementId($mageOrderNumber);
         Pb_Pbgsp_Model_Util::log(" createPbOrder");
 		if ($this->isPbOrder($order)) {
+//            $clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
+//            $clearPathOrders -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
+//            $orderNumber = null;
+//            foreach ($clearPathOrders as $cpOrder) {
+//                $orderNumber = $cpOrder;
+//
+//            }
+//            if(!$orderNumber) {
+//                Pb_Pbgsp_Model_Util::log("$mageOrderNumber not PB order");
+//                return;
+//            }
+
             $orderNumber = Mage::getSingleton("customer/session")->getPbOrderNumber();
+            //$orderNumber = Mage::getSingleton("customer/session")->getPbOrderNumber();
 			
 			// Save in DB
 
@@ -204,9 +220,11 @@ class Pb_Pbgsp_Model_Observer {
 	}
 	
 	public function saveShippingMethod($observer) {
-        //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.saveShippingMethod');
+        Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.saveShippingMethod');
 		//TODO: If anything fails here I need to fail the checkout process.
 		$address = $observer->getQuote()->getShippingAddress();
+        Pb_Pbgsp_Model_Util::log($address->getShippingMethod());
+        Pb_Pbgsp_Model_Util::log($this->getShipMethod($observer));
 		$domesticShippingAdress = $address->getName()."</br>".$address->getStreetFull().", ".$address->getCity()."</br> ".$address->getRegion().", ".$address->getCountry().",".$address->getPostcode()."</br> T:".$address->getTelephone();
 		if ($this->isPbOrder($address)) {
             Pb_Pbgsp_Model_Util::log(" PB order");
@@ -241,6 +259,7 @@ class Pb_Pbgsp_Model_Observer {
             $orderNumber->setHubPostalCode($order["shipToHub"]['hubAddress']['postalOrZipCode']);
             $orderNumber->setHubCity($order["shipToHub"]['hubAddress']['city']);
 			$orderNumber->setOriginalShippingAddress($domesticShippingAdress);
+            $orderNumber->save();
 			Mage::getSingleton("customer/session")->setPbOrderNumber($orderNumber);
 		} else {
             Pb_Pbgsp_Model_Util::log(" not clearpath order");

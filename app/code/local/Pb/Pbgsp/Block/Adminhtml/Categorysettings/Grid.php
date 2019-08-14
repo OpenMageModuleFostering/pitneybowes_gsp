@@ -13,7 +13,7 @@ class Pb_Pbgsp_Block_Adminhtml_Categorysettings_Grid extends Mage_Adminhtml_Bloc
         $this->setId('categorysettingsGrid');
         $this->setDefaultSort('entity_id');
         $this->setDefaultDir('ASC');
-        $this->setUseAjax(true);
+        //$this->setUseAjax(true);
         $this->setSaveParametersInSession(true);
     }
 

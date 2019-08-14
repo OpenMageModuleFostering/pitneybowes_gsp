@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.2.3)
- * Packaged:      2015-11-04T12:13:20+00:00
- * Last Modified: 2015-10-21T12:09:20+00:00
+ * Product:       Pb_Pbgsp (1.3.0)
+ * Packaged:      2015-11-12T06:33:00+00:00
+ * Last Modified: 2015-11-04T12:13:20+00:00
 
 
 
@@ -36,23 +36,26 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
         $processor = new Pb_Pbgsp_Model_Messages();
         $isUnitErrorAdded = false;
 
-        foreach($quote['quoteLines'] as $quoteLine) {
-            if(array_key_exists('unitErrors',$quoteLine)) {
-                foreach($quoteLine['unitErrors'] as $error) {
-                    $message = '';
-                    if(array_key_exists('message',$error))
-                        $message = $error['message'];
-                    $message = $processor->getDisplayMessage($error["error"],$message);//.$sku;
-                    $sku = $quoteLine['merchantComRefId'];
-                    $product = Mage::getModel('catalog/product')->loadByAttribute('sku',$sku);
-                    $message = $message . " Please remove ". $product->getName() . " from cart.";
-                    $this->_addError($result,$message);
-                    $isUnitErrorAdded = true;
+        if(array_key_exists('quoteLines',$quote)) {
+            foreach($quote['quoteLines'] as $quoteLine) {
+                if(array_key_exists('unitErrors',$quoteLine)) {
+                    foreach($quoteLine['unitErrors'] as $error) {
+                        $message = '';
+                        if(array_key_exists('message',$error))
+                            $message = $error['message'];
+                        $message = $processor->getDisplayMessage($error["error"],$message);//.$sku;
+                        $sku = $quoteLine['merchantComRefId'];
+                        $product = Mage::getModel('catalog/product')->loadByAttribute('sku',$sku);
+                        $message = $message . " Please remove ". $product->getName() . " from cart.";
+                        $this->_addError($result,$message);
+                        $isUnitErrorAdded = true;
+                    }
+
                 }
 
             }
-
         }
+
         if(!$isUnitErrorAdded) {
             foreach($quote['errors'] as $error) {
                 $message = '';
@@ -155,7 +158,7 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
             Mage::getSingleton("customer/session")->setPbDutyAndTax($tax);
             $method->setTax($tax);
         }
-
+        Pb_Pbgsp_Model_Util::log($method);
         return $method;
     }
     private function _getCheapestShipMethod($quoteSet,$items)
@@ -186,7 +189,7 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
   public function collectRates(Mage_Shipping_Model_Rate_Request $request)
   {
       Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
-      Mage::getSingleton("customer/session")->setPbOrderNumber(false);
+
       Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
   	//Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Carrier_ShippingMethod.collectRates ' . Mage::getStoreConfig('carriers/'.$this->_code.'/active'));
     // skip if not enabled
@@ -299,7 +302,7 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
               $message = "We've received an unexpected error while getting your quote. Please try again. If the error persists contact magentosupport@pb.com.";
           $this->_addError($result,$message);
           Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
-          Mage::getSingleton("customer/session")->setPbOrderNumber(false);
+
           Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
 
       }

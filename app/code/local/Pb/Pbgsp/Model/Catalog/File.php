@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.2.3)
- * Packaged:      2015-11-04T12:13:20+00:00
- * Last Modified: 2015-10-21T12:09:20+00:00
+ * Product:       Pb_Pbgsp (1.3.0)
+ * Packaged:      2015-11-12T06:33:00+00:00
+ * Last Modified: 2015-11-04T12:13:20+00:00
 
 
 
@@ -40,7 +40,7 @@ class Pb_Pbgsp_Model_Catalog_File {
     private function _getDataFileName($dataFeedName,$part=null) {
         $partName = '';
         if($part)
-            $partName = '_part'.$part;
+            $partName = '_'.str_pad($part, 5, "0", STR_PAD_LEFT);
         $fileName = Pb_Pbgsp_Model_Credentials::getCatalogSenderID() . "_".$dataFeedName."_update_". Pb_Pbgsp_Model_Credentials::getPBID().'_'.date('Ymd_His').'_'.mt_rand(100000, 999999);
         if($part == 1)
             $this->lastFileName = $fileName;
@@ -269,7 +269,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                             $pbProduct = new Pb_Pbgsp_Model_Catalog_Product($product,sprintf($productUrlFormat,$product->getId()));
                             if( $fileRecordCount > $maxRecordsCount)
                             {
-                                $this->_createNewCommoditiyFile();
+                                $this->_createNewCommoditiyFile($part);
                                 $fileRecordCount=0;
                                 $part++;
                             }
@@ -792,7 +792,7 @@ class Pb_Pbgsp_Model_Catalog_File {
     {
         if ($part == 2) {
             //there is only one part remove part1 from filename
-            rename($this->filename, str_replace('_part1', '', $this->filename));
+            rename($this->filename, str_replace('_00001', '', $this->filename));
         }
     }
 }
