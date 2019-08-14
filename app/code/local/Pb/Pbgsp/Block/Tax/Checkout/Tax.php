@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.3.8)
- * Packaged:      2016-06-23T10:40:00+00:00
- * Last Modified: 2016-06-01T14:02:28+00:00
+ * Product:       Pb_Pbgsp (1.3.9)
+ * Packaged:      2016-07-26T14:17:00+00:00
+ * Last Modified: 2016-06-23T10:40:00+00:00
  */
 class Pb_Pbgsp_Block_Tax_Checkout_Tax extends Mage_Tax_Block_Checkout_Tax
 {

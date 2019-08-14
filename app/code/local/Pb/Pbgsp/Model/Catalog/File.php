@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.3.8)
- * Packaged:      2016-06-23T10:40:00+00:00
- * Last Modified: 2016-06-01T14:02:28+00:00
+ * Product:       Pb_Pbgsp (1.3.9)
+ * Packaged:      2016-07-26T14:17:00+00:00
+ * Last Modified: 2016-06-23T10:40:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/File.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -267,7 +267,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                                         $fileRecordCount=0;
                                         $part++;
                                     }
-                                    $pbChildProduct = new Pb_Pbgsp_Model_Catalog_Product($childProduct->getId(),sprintf($productUrlFormat,$product->getId()));
+                                    $pbChildProduct = new Pb_Pbgsp_Model_Catalog_Product($childProduct->getId(),$product->getUrlInStore());
                                     $this->writeProduct($pbChildProduct,$cateId,$product->getSku(),$prodCat);
                                     $addedProducts[$childProduct->getSku()] = "added";
                                     $prodCount++;
@@ -279,7 +279,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                                 if(!$childProduct->getPbPbgspUploadDeletedOn()) {
                                     if(!array_key_exists($childProduct->getSku(),$this->productsToDelete)) {
                                         $this->productsToDelete[$childProduct->getSku()] = array('product' => $childProduct,
-                                            'pbproduct' => new Pb_Pbgsp_Model_Catalog_Product($childProduct->getId(),sprintf($productUrlFormat,$product->getId())),
+                                            'pbproduct' => new Pb_Pbgsp_Model_Catalog_Product($childProduct->getId(),$product->getUrlInStore()),
                                             'catid' => $cateId,
                                             'category' => $prodCat,
                                             'parentSku' => $product->getSku());
@@ -296,7 +296,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                     else {
                         if(!$product->getPbPbgspUploadDelete()) {
                             if (!array_key_exists($product->getSku(), $addedProducts)) {
-                                $pbProduct = new Pb_Pbgsp_Model_Catalog_Product($product, sprintf($productUrlFormat, $product->getId()));
+                                $pbProduct = new Pb_Pbgsp_Model_Catalog_Product($product, $product->getUrlInStore());
                                 if ($fileRecordCount > $maxRecordsCount) {
                                     $this->_createNewCommoditiyFile($part);
                                     $fileRecordCount = 0;
@@ -314,7 +314,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                             if(!$product->getPbPbgspUploadDeletedOn()) {
                                 if(!array_key_exists($product->getSku(),$this->productsToDelete)) {
                                     $this->productsToDelete[$product->getSku()] = array('product' => $product,
-                                        'pbproduct' => new Pb_Pbgsp_Model_Catalog_Product($product->getId(),sprintf($productUrlFormat,$product->getId())),
+                                        'pbproduct' => new Pb_Pbgsp_Model_Catalog_Product($product->getId(),$product->getUrlInStore()),
                                         'catid' => $cateId,
                                         'category' => $prodCat,
                                         'parentSku' => $product->getSku());
@@ -845,9 +845,7 @@ class Pb_Pbgsp_Model_Catalog_File {
         }
     }
 
-    public static function stripHtml($text)  {
-        return preg_replace("/<\s*\/\s*\w\s*.*?>|<\s*br\s*>/",'',preg_replace("/<\s*\w.*?>/", '', $text));
-    }
+
 
     /**
      * Loads products without categories and logs them in log file

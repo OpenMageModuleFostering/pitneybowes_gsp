@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.8)
- * Packaged:      2016-06-23T10:40:00+00:00
- * Last Modified: 2016-06-01T14:02:28+00:00
+ * Product:       Pb_Pbgsp (1.3.9)
+ * Packaged:      2016-07-26T14:17:00+00:00
+ * Last Modified: 2016-06-23T10:40:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Util.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -47,6 +47,21 @@ class Pb_Pbgsp_Model_Util  {
 
         return false;
 
+    }
+
+    public static function chopString($str, $len) {
+        $end = $len;
+        $lastFour = substr($str,$end - strlen("&amp"),strlen("&amp"));
+        $pos = strpos($lastFour,"&");
+        if (!($pos === FALSE)) {
+            $end = $end - strlen("&amp") + $pos;
+        }
+        $ret = substr($str,0,$end);
+        return $ret;
+    }
+
+    public static function stripHtml($text)  {
+        return preg_replace("/<\s*\/\s*\w\s*.*?>|<\s*br\s*>/",'',preg_replace("/<\s*\w.*?>/", '', $text));
     }
 }
 

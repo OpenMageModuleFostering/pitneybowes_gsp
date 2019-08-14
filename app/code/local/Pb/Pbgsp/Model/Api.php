@@ -1,10 +1,15 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.8)
- * Packaged:      2016-06-23T10:40:00+00:00
- * Last Modified: 2016-06-01T14:02:28+00:00
+ * Product:       Pb_Pbgsp (1.3.3)
+ * Packaged:      2016-02-23T11:12:30+00:00
+ * Last Modified: 2016-01-11T11:12:49+00:00
+
+
+
+
+
  * File:          app/code/local/Pb/Pbgsp/Model/Api.php
- * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
+ * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 class Pb_Pbgsp_Model_Api
 {
@@ -21,7 +26,7 @@ class Pb_Pbgsp_Model_Api
                 curl_setopt($curl, CURLOPT_POST, 1);
 
                 if ($data) {
-                    $dataString = json_encode($data);
+                    $dataString = json_encode($data,JSON_UNESCAPED_SLASHES);
                     Pb_Pbgsp_Model_Util::log("Data to pass to get quote $dataString");
                     $headers[] = 'Content-Type: application/json';
                     $headers[] = 'Content-Length: ' . strlen($dataString);
@@ -32,7 +37,7 @@ class Pb_Pbgsp_Model_Api
             case "PUT":
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
                 if ($data) {
-                    $dataString = json_encode($data);
+                    $dataString = json_encode($data,JSON_UNESCAPED_SLASHES);
                     Pb_Pbgsp_Model_Util::log("Data to pass to PUT $dataString");
                     $headers[] = 'Content-Type: application/json';
                     $headers[] = 'Content-Length: ' . strlen($dataString);
@@ -160,11 +165,7 @@ class Pb_Pbgsp_Model_Api
                 ($product->getParentItem() && $product->isChildrenCalculated())) {
                 /* @var Mage_Sales_Model_Order_Item $product */
 
-                $qty = $product->getQty();
-                if(!$qty) {
-                    $qty = $product->getQtyToShip();
-                }
-            	$totalProducts += $qty;
+            	$totalProducts += $product->getQty();
 
 //                Pb_Pbgsp_Model_Util::log('discount amount '. $product->getDiscountAmount());
 //                Pb_Pbgsp_Model_Util::log('Price '. $product->getPrice());
@@ -172,11 +173,36 @@ class Pb_Pbgsp_Model_Api
                 $price = $product->getPrice() - $product->getDiscountAmount();//$price - ($product->getDiscountAmount() * $product->getQty());
                 if($price == 0)
                     $price = 0.01; //set this price so that quote could be retrieved.
+                $actualProduct = Mage::getModel('catalog/product') -> load($product->getProductId());
+                /* @var Mage_Catalog_Model_Product $actualProduct */
+
+				$cats = $actualProduct->getCategoryIds();
+				$category_name= array();
+					foreach ($cats as $category_id) {
+						$_cat = Mage::getModel('catalog/category')->load($category_id) ;
+						$category_name[]= array("merchantCatRefId" =>$_cat->getName());
+					}
+                $shortDescription = Pb_Pbgsp_Model_Util::stripHtml($actualProduct -> getShortDescription());
+                $shortDescription = preg_replace("/[^A-Za-z0-9 .\-\+=;:\\(){}\[\]@?%$#]/",'',$shortDescription);
+                if (strlen($shortDescription) >= 2000) {
+
+                    $shortDescription = Pb_Pbgsp_Model_Util::chopString($shortDescription, 1999);
+                }
+                $arDescriptions = array(array(
+                    "locale" => "en_CA",
+                    "name" => $product->getName(),
+                    "shortDescription" => $shortDescription
+                ));
                 array_push($basketLines, array(
                                               "lineId" => $product->getSku(),
-                                              "commodity" => array('merchantComRefId' => $product->getSku()),
+                                              "commodity" => array(
+                                              					'merchantComRefId' => $product->getSku(),
+                                              						"descriptions" =>$arDescriptions,
+																	  "commodityUrl" => $actualProduct->getProductUrl(),
+																	  "categories" => $category_name,
+                                              					),
                                               "unitPrice" => array('price' => array('value' => $price)),
-                                              "quantity" => intval($qty)
+                                              "quantity" => intval($product->getQty())
 
                                               )
                                          );
@@ -217,18 +243,13 @@ class Pb_Pbgsp_Model_Api
         $familyName = $address->getLastname(); //when it comes from paypal express, lastname is null, Kamran, Bigpixel Studio,
         if(!$familyName)
             $familyName = $address->getFirstname();
-        $phone = $address->getTelephone();
-        if(!$phone)
-            $phone = Pb_Pbgsp_Model_Credentials::getCustomerServiceNumber();
-        if(!$phone)
-            $phone = '555-555-1234';
         $consignee = array(
             'familyName' => $familyName,
             'givenName' => $address->getFirstname(),
             'email' => $email,
             'phoneNumbers' => array(
                 array(
-                    'number' => $phone,
+                    'number' => $address->getTelephone(),
                     'type' => 'other'
                 )
             )
@@ -244,18 +265,48 @@ class Pb_Pbgsp_Model_Api
             'postalOrZipCode' => $address->getPostcode()
         );
         $currency = 'USD';//Mage::app()->getStore()->getCurrentCurrencyCode();
+		
+		
+		// added seller information 30/06/2016
+		$contactdetail=array(
+		'familyName' => Mage::getStoreConfig('carriers/pbgsp_setting/family_name'),
+		'givenName' => Mage::getStoreConfig('carriers/pbgsp_setting/given_name'),
+		'email' => Mage::getStoreConfig('carriers/pbgsp_setting/seller_email'),
+		'phoneNumbers'=>  array(
+                array(
+                    'number' => Mage::getStoreConfig('carriers/pbgsp_setting/phone_number'),
+                    'type' => Mage::getStoreConfig('carriers/pbgsp_setting/phone_number_type')
+                )
+            )
+		);
+		
+		$sellerAddress= array(
+		'street1' => Mage::getStoreConfig('carriers/pbgsp_setting/address_street1'),
+		'city' => Mage::getStoreConfig('carriers/pbgsp_setting/address_city'),
+		'provinceOrState' => Mage::getStoreConfig('carriers/pbgsp_setting/address_provinenceorstate'),
+		'postalOrZipCode' => Mage::getStoreConfig('carriers/pbgsp_setting/address_postalorzipcode'),
+		'country' => Mage::getStoreConfig('carriers/pbgsp_setting/address_country'),
+		);
+		
+		$seller= array(
+		'sellerID'=> Mage::getStoreConfig('carriers/pbgsp_setting/seller_id'),
+		//'sellerType'=> Mage::getStoreConfig('carriers/pbgsp_setting/seller_type'),
+		'contactdetail'=>$contactdetail,
+		'address'=>$sellerAddress	
+		);
+		
+		// end seller code
         $basket = array(
             'merchantId' => Pb_Pbgsp_Model_Credentials::getMerchantCode(),
             'purchaserIPAddress' => self::getClientIP(),
-            'transactionId' => mt_rand(100000, 999999),
+            'transactionId' => "".mt_rand(100000, 999999)."",
             'quoteCurrency' => $currency,
-            'basketLines' => $basketLines
-            ,
+            'basketCurrency' => $currency,
+            'basketLines' => $basketLines,
             'toHubTransportations' => $toHubTransportations,
-            'consignee' => $consignee
-            ,
-            'shippingAddress' => $shippingAddress
-
+            'consignee' => $consignee,
+            'shippingAddress' => $shippingAddress,
+//'seller' => $seller
         );
 
 
@@ -310,15 +361,9 @@ class Pb_Pbgsp_Model_Api
 //							 ->setData('order_id', $shipment->getData('order_id'))
 //							 ->save();
 		}
-
-        //Pb_Pbgsp_Model_Util::log(get_class($number));
-        if(get_class($number) == 'SimpleXMLElement') {
-            $json = json_encode($number);
-            $array = json_decode($json,TRUE);
-            $number = $array[0];
-        }
-
-
+		
+		
+										 
         $requestBody = array(
             'merchantOrderNumber' => $cpOrderNumber,
             'parcelIdentificationNumber' => $number,
@@ -498,13 +543,7 @@ class Pb_Pbgsp_Model_Api
 
 
 
-
         $billingAddress = $order->getBillingAddress();
-        $phone = $billingAddress->getTelephone();
-        if(!$phone)
-            $phone = Pb_Pbgsp_Model_Credentials::getCustomerServiceNumber();
-        if(!$phone)
-            $phone = '555-555-1234';
         $confirm = array(
             'transactionId' => $order->getRealOrderId(),
             'merchantOrderNumber' => $order->getRealOrderId(),
@@ -514,7 +553,7 @@ class Pb_Pbgsp_Model_Api
                 'email' => $order->getCustomerEmail(),
                 'phoneNumbers' => array(
                     array(
-                        'number' => $phone ,
+                        'number' => $billingAddress->getTelephone(),
                         'type' => 'other'
                     )
                  )),

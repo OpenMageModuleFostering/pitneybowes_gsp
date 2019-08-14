@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.8)
- * Packaged:      2016-06-23T10:40:00+00:00
- * Last Modified: 2016-06-01T14:02:28+00:00
+ * Product:       Pb_Pbgsp (1.3.9)
+ * Packaged:      2016-07-26T14:17:00+00:00
+ * Last Modified: 2016-06-23T10:40:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/Category.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -78,7 +78,7 @@ class Pb_Pbgsp_Model_Catalog_Category {
     }
 	public function writeToFile($file,$lastDiff) {
         if($this->_shouldUpload($lastDiff)) {
-            $name = Pb_Pbgsp_Model_Catalog_File::stripHtml($this->getName());
+            $name = Pb_Pbgsp_Model_Util::stripHtml($this->getName());
             $name = preg_replace("/[^A-Za-z0-9 ,.\-\+=;:\\(){}\[\]@?%$#]/", '', $name);
 
             $parentCateID = '';

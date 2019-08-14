@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.8)
- * Packaged:      2016-06-23T10:40:00+00:00
- * Last Modified: 2016-06-01T14:02:28+00:00
+ * Product:       Pb_Pbgsp (1.3.9)
+ * Packaged:      2016-07-26T14:17:00+00:00
+ * Last Modified: 2016-06-23T10:40:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/Product.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -23,7 +23,9 @@ class Pb_Pbgsp_Model_Catalog_Product {
         }
         else
             $this -> product = Mage::getModel('catalog/product') -> load($id);
-        $this->_productUrl = $this -> product->getUrlInStore();// $url;
+        $this->_productUrl = $url;
+        if(!$this->_productUrl)
+            $this->_productUrl = $this -> product->getUrlInStore();// $url;
     }
 
     /**
@@ -123,21 +125,21 @@ class Pb_Pbgsp_Model_Catalog_Product {
      */
     public function writeToFile($file,$categoryCode,$parentSku,$category) {
         /** $categoryCode is passed in method because we don't have categoryCode for child products. BigPixel 6/11/2012 */
-        $name = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getName());
+        $name = Pb_Pbgsp_Model_Util::stripHtml($this -> getName());
 		$shortDescription ='';
         $name = preg_replace("/[^A-Za-z0-9 ,.\-\+=;:\\(){}\[\]@?%$#]/", '', $name);
-        $description = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getDescription());
+        $description = Pb_Pbgsp_Model_Util::stripHtml($this -> getDescription());
         $description = preg_replace("/[^A-Za-z0-9 .\-\+=;:\\(){}\[\]@?%$#]/", '', $description);
         if (strlen($description) >= 2000) {
 
-            $description = $this -> chopString($description, 1999);
+            $description = Pb_Pbgsp_Model_Util::chopString($description, 1999);
         }
 
-   $shortDescription = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getShortDescription());
+   $shortDescription = Pb_Pbgsp_Model_Util::stripHtml($this -> getShortDescription());
    $shortDescription = preg_replace("/[^A-Za-z0-9 .\-\+=;:\\(){}\[\]@?%$#]/",'',$shortDescription);
         if (strlen($shortDescription) >= 2000) {
 
-            $shortDescription = $this -> chopString($shortDescription, 1999);
+            $shortDescription = Pb_Pbgsp_Model_Util::chopString($shortDescription, 1999);
         }
 
 
@@ -225,16 +227,7 @@ class Pb_Pbgsp_Model_Catalog_Product {
         }
     }
 
-    public function chopString($str, $len) {
-        $end = $len;
-        $lastFour = substr($str,$end - strlen("&amp"),strlen("&amp"));
-        $pos = strpos($lastFour,"&");
-        if (!($pos === FALSE)) {
-            $end = $end - strlen("&amp") + $pos;
-        }
-        $ret = substr($str,0,$end);
-        return $ret;
-    }
+
 
 }
 ?>
