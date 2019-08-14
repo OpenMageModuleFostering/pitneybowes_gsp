@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.1.1</version>
+            <version>1.1.2</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -473,6 +473,15 @@
                     <model>pb_pbgsp/catalog_cron::processStatusNotifications</model>
                 </run>
             </pb_notifications>
+			
+			<pb_generateASN>
+                <schedule>
+                    <cron_expr>0 * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>pb_pbgsp/Inboundparcel::generateInboundParcelPreAdviceCron</model>
+                </run>
+            </pb_generateASN>
         </jobs>
     </crontab>
     <adminhtml>

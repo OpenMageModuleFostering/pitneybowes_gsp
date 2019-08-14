@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.3)
- * Packaged:      2015-09-1T15:12:28+00:00
- * Last Modified: 2015-08-25T15:12:28+00:00
+ * Product:       Pb_Pbgsp (1.1.2)
+ * Packaged:      2015-09-23T12:09:53+00:00
+ * Last Modified: 2015-09-14T12:11:20+00:00
 
 
 
@@ -48,6 +48,8 @@ class Pb_Pbgsp_Model_Observer {
             try {
                 $shipment = $observer->getEvent()->getShipment();
                 $order = $shipment->getOrder();
+				$shipId = $shipment['entity_id'];
+				
                 /* @var $order Mage_Sales_Model_Order */
 
                 if(!$this->isPbOrder($order))
@@ -80,12 +82,24 @@ class Pb_Pbgsp_Model_Observer {
                         Pb_Pbgsp_Model_Util::log($parcelResponse);
                     }
                     else {
+						
+						//Save entry in table
                         $cpParcel = Mage::getModel('pb_pbgsp/inboundparcel');
                         $cpParcel->setInboundParcel($parcelResponse['parcelIdentifier']);
                         $cpParcel->setMageOrderNumber( $order->getRealOrderId());
                         $cpParcel->setPbOrderNumber( $cpOrderNumber);
+						$cpParcel->setMageOrderShipmentNumber( $shipId);
                         $cpParcel->save();
 						
+						// add the tracking info magento
+						$track = Mage::getModel('sales/order_shipment_track')
+										 ->setShipment($shipment)
+										 ->setData('title', 'PB')
+										 ->setData('number',$parcelResponse['parcelIdentifier'])
+										 ->setData('carrier_code', 'custom')
+										 ->setData('order_id', $shipment->getData('order_id'))
+										 ->save();
+				 
                         Pb_Pbgsp_Model_Util::log('Inbound Parcel Number Saved');
                     }
 
@@ -285,8 +299,12 @@ class Pb_Pbgsp_Model_Observer {
             $cpord = $this->_getCPORD($observer->getEvent()->getBlock()->getOrder());
             if($cpord) {
                 $staging = 0;
-                if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox') >=0)
+                if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox'))
                     $staging = 1;
+
+				
+
+				
                 $transport['html'] = "<a href='http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging'>Track your order</a>";
             }
 
@@ -316,8 +334,10 @@ class Pb_Pbgsp_Model_Observer {
             $cpord = $this->_getCPORD(Mage::getModel('sales/order')->load($orderId));
             if($cpord) {
                 $staging = 0;
-                if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox') >=0)
+                if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox'))
                     $staging = 1;
+
+				
                 $script = "<script lang='javascript'>
                                 window.location = 'http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging';
                            </script>

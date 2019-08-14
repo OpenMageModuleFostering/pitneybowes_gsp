@@ -10,12 +10,12 @@
  * File:          app/code/local/Pb/Pbgsp/Model/Handlingoptions.php
  * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
-class Pb_Pbgsp_Model_Handlingoptions {
+class Pb_Pbgsp_Model_Authapioptions {
     public function toOptionArray()
     {
         return array(
-            array('value'=>1, 'label'=>'Per Order'),
-            array('value'=>2, 'label'=>'Per Item'),
+            array('value'=>"Auth: https://cbs.ecommerce.pb.com/auth/token", 'label'=>'Production'),
+            array('value'=>"https://sandbox-cbs.ecommerce.pb.com/auth/token", 'label'=>'Sandbox'),
 
         );
     }

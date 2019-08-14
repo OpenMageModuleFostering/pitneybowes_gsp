@@ -31,6 +31,14 @@ In order to take advantage of the file encryption setting in the extension confi
 ========================================================
 CHANGELOG
 ========================================================
+
+v. 1.1.2
+
+Integrated validation for title field in configuration page to resolve PHP 5.3 will warning when there is an empty string
+
+Added a cron job to check for shipped PB orders that have no ASNs (tracking numbers) and attempt to create.
+
+
 v. 1.1.1
 
 Corrected currency conversion logic to not request rate from PB but run conversion directly in Magento

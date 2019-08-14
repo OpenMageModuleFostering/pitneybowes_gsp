@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.1.1)
- * Packaged:      2015-09-14T12:11:20+00:00
- * Last Modified: 2015-09-9T12:10:00+00:00
+ * Product:       Pb_Pbgsp (1.1.2)
+ * Packaged:      2015-09-23T12:09:53+00:00
+ * Last Modified: 2015-09-14T12:11:20+00:00
 
 
 
@@ -74,6 +74,9 @@ class Pb_Pbgsp_Model_Api
                 Mage::getSingleton("customer/session")->setPbToken(false);
                 self::CallAPI($method,$url,$data,true);
             }
+			if($status == 404){
+				return $result;
+			}
             else {
                 throw new Exception($result,$status);
             }
@@ -282,13 +285,21 @@ class Pb_Pbgsp_Model_Api
         foreach($shipment->getTracksCollection() as $track) {
             $tracks[] = $track;
         }
+		
+		if(isset($tracks[0])){
+			$number=$tracks[0]->getNumber();
+			$title = $tracks[0]->getTitle();
+		}else{
+			$number = '123456';
+			$title = 'PB';
+		}
         $requestBody = array(
             'merchantOrderNumber' => $cpOrderNumber,
-            'parcelIdentificationNumber' => $tracks[0]->getNumber(),
+            'parcelIdentificationNumber' => $number,
             'inboundParcelCommodities' => $inboundParcelCommodities,
-            'shipper' => $tracks[0]->getTitle(),
+            'shipper' => $title,
             'shipperService' => 'EXPRESS',
-            'shipperTrackingNumber'=> $tracks[0]->getNumber(),
+            'shipperTrackingNumber'=> $number,
             'dcId' => '211113442',
             'dcAddress' => array(
                 'street1' => '200 Main Street',
@@ -324,10 +335,19 @@ class Pb_Pbgsp_Model_Api
         );
         $url = Pb_Pbgsp_Model_Credentials::getOrderMgmtAPIUrl().'/orders/'.
             $cpOrderNumber.'/inbound-parcels';
-        $response = self::CallAPI('POST',$url,$requestBody);
-        $parcelResponse = json_decode($response,true);
-        Pb_Pbgsp_Model_Util::log('Response of inbound-parcels');
-        Pb_Pbgsp_Model_Util::log($parcelResponse);
+		
+		 $tryCnt = 1;
+	  	 do
+		 {
+		    $response = self::CallAPI('POST',$url,$requestBody);
+		    $parcelResponse = json_decode($response,true);
+		   
+  		    Pb_Pbgsp_Model_Util::log('Response of inbound-parcels try'.$tryCnt);
+			Pb_Pbgsp_Model_Util::log($parcelResponse);
+			$tryCnt ++;
+			
+		} while(($tryCnt <= 10) && (array_key_exists('errors',$parcelResponse)));
+        
         return $parcelResponse;
 
     }
@@ -408,13 +428,24 @@ class Pb_Pbgsp_Model_Api
 			$cancelOrderResponse = json_decode($response,true);
 			Pb_Pbgsp_Model_Util::log('Response of cancel order');
 			Pb_Pbgsp_Model_Util::log($cancelOrderResponse);
-			return $cancelOrderResponse;
+			if(array_key_exists('errors',$cancelOrderResponse)) {
+				Pb_Pbgsp_Model_Util::log("Error generating cancelling order");
+				Pb_Pbgsp_Model_Util::log($cancelOrderResponse);
+				foreach($cancelOrderResponse['errors'] as $error){
+					$errorCode= $error['error'];
+					$errorMessage .=$error['message']."</br>";
+				}
+				Mage::getSingleton('core/session')->addError('PB Error - '.$errorMessage);
+			}else{
+				return $cancelOrderResponse;
+			}
+			
 
         }
         catch(Exception $e) {
             Pb_Pbgsp_Model_Util::log("Received unexpected exception from Pb while calling cancel Order.");
             Pb_Pbgsp_Model_Util::logException($e);
-
+			Mage::getSingleton('core/session')->addError('Unexpected exception from PB while calling cancel Order. '.$e->getMessage());
 
         }
 
