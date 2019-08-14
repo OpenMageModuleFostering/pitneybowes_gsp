@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.0)
- * Packaged:      2016-07-28T17:25:00+00:00
- * Last Modified: 2016-07-26T14:17:00+00:00
+ * Product:       Pb_Pbgsp (1.4.1)
+ * Packaged:      2016-07-26T14:25:00+00:00
+ * Last Modified: 2016-09-13T10:50:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Sales/Order/Shipment.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -11,9 +11,44 @@ class Pb_Pbgsp_Model_Sales_Order_Shipment extends Mage_Sales_Model_Order_Shipmen
 
     public function sendEmail($notifyCustomer = true, $comment = '')
     {
-        if(Mage::getStoreConfig('carriers/pbgsp/suppress_domestic_tracking') != '1')
-            return parent::sendEmail($notifyCustomer,$comment);
+        $delayInMinutes = 5;
+        Mage::log('Pb_Pbgsp_Model_Sales_Order_Shipment.sendEmail');
         $order = $this->getOrder();
+        if(!Pb_Pbgsp_Model_Util::isPbOrder($order->getShippingMethod())){
+            return parent::sendEmail($notifyCustomer,$comment);
+        }
+        $shipmentemail = null;
+        $shipmentemailColl = Mage::getModel("pb_pbgsp/shipmentemail")-> getCollection();
+        $shipmentemailColl -> addFieldToFilter('shipment_id',$this->getIncrementId());
+        foreach($shipmentemailColl as $semail) {
+            $shipmentemail = $semail;
+            break;
+        }
+        if(!$shipmentemail) {
+            //delay the email
+            $shipmentemail = Mage::getModel("pb_pbgsp/shipmentemail");
+            $shipmentemail->setShipmentId($this->getIncrementId());
+            $shipmentemail->setCreatedDate(time());
+            $shipmentemail->save();
+            return $this;
+        }
+        else {
+            $createdTime = intval($shipmentemail->getCreatedDate());
+            if(time() < ($createdTime + (60 + $delayInMinutes))) {
+                //Mage::log("time() < ($createdTime + (60 + $delayInMinutes))");
+                return $this;
+            }
+        }
+        if(Mage::getStoreConfig('carriers/pbgsp/suppress_domestic_tracking') != '1') {
+            parent::sendEmail($notifyCustomer,$comment);
+            if($shipmentemail) {
+                $shipmentemail->setEmailSent(time());
+                $shipmentemail->save();
+            }
+            return $this;
+        }
+
+
         $storeId = $order->getStore()->getId();
 
         if (!Mage::helper('sales')->canSendNewShipmentEmail($storeId)) {
@@ -55,15 +90,17 @@ class Pb_Pbgsp_Model_Sales_Order_Shipment extends Mage_Sales_Model_Order_Shipmen
             $customerName = $order->getCustomerName();
         }
 
-
-
+        $cpord = Pb_Pbgsp_Model_Util::getCPORD($order);
+        $email = $order->getCustomerEmail();
+        $trackingUrl = "https://parceltracking.pb.com/app/#/dashboard/$cpord/$email";
         $emailTemplateVariables = array(
             'order'    => $order,
             'shipment' => $this,
             'comment'  => $comment,
             'billing'  => $order->getBillingAddress(),
             'store' => Mage::app()->getStore($storeId),
-            'payment_html' => $paymentBlockHtml
+            'payment_html' => $paymentBlockHtml,
+            'tracking_url' => $trackingUrl
 
 
         );
@@ -74,6 +111,7 @@ class Pb_Pbgsp_Model_Sales_Order_Shipment extends Mage_Sales_Model_Order_Shipmen
             Mage::getStoreConfig('carriers/pbgsp/custom_shipment_email_subject'));
         $emailTemplate->setSenderEmail(Mage::getStoreConfig(self::XML_PATH_EMAIL_IDENTITY, $storeId));
         $processedTemplate = $emailTemplate->getProcessedTemplate($emailTemplateVariables);
+        $processedTemplate = str_replace("PBGSP_Manual_Catalog_Export","index",$processedTemplate);
         //Pb_Pbgsp_Model_Util::log($processedTemplate);
         //$emailTemplate->send($order->getCustomerEmail(), $customerName,$emailTemplateVariables);
         //Pb_Pbgsp_Model_Util::log('Email subject'. $emailTemplate->getTemplateSubject());
@@ -94,6 +132,11 @@ class Pb_Pbgsp_Model_Sales_Order_Shipment extends Mage_Sales_Model_Order_Shipmen
             $mail->send();
             //Pb_Pbgsp_Model_Util::log("Email sent to");
             //Pb_Pbgsp_Model_Util::log($order->getCustomerEmail());
+            if($shipmentemail) {
+                $shipmentemail->setEmailSent(time());
+                $shipmentemail->save();
+                Mage::log("shipmentemail set".$shipmentemail->getEmailSent());
+            }
         }
         catch(Exception $error)
         {

@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.0)
- * Packaged:      2016-07-28T17:25:00+00:00
- * Last Modified: 2016-07-26T14:17:00+00:00
+ * Product:       Pb_Pbgsp (1.4.1)
+ * Packaged:      2016-07-26T14:25:00+00:00
+ * Last Modified: 2016-09-13T10:50:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/Product.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -143,16 +143,7 @@ class Pb_Pbgsp_Model_Catalog_Product {
         }
 
 
-//        fputcsv($this->file,array('MERCHANT_COMMODITY_REF_ID','COMMODITY_NAME_TITLE','SHORT_DESCRIPTION',
-//            'LONG_DESCRIPTION','RETAILER_ID','COMMODITY_URL','RETAILER_UNIQUE_ID','PCH_CATEGORY_ID',
-//            'RH_CATEGORY_ID','STANDARD_PRICE','WEIGHT_UNIT','DISTANCE_UNIT','COO','IMAGE_URL','PARENT_SKU',
-//            'CHILD_SKU','PARCELS_PER_SKU','UPC','UPC_CHECK_DIGIT','GTIN','MPN','ISBN','BRAND','MANUFACTURER',
-//            'MODEL_NUMBER','MANUFACTURER_STOCK_NUMBER','COMMODITY_CONDITION','COMMODITY_HEIGHT',
-//            'COMMODITY_WIDTH','COMMODITY_LENGTH','PACKAGE_WEIGHT','PACKAGE_HEIGHT','PACKAGE_WIDTH',
-//            'PACKAGE_LENGTH','HAZMAT','ORMD','CHEMICAL_INDICATOR','PESTICIDE_INDICATOR','AEROSOL_INDICATOR',
-//            'RPPC_INDICATOR','BATTERY_TYPE','NON_SPILLABLE_BATTERY','FUEL_RESTRICTION','SHIP_ALONE',
-//            'RH_CATEGORY_ID_PATH','RH_CATEGORY_NAME_PATH','RH_CATEGORY_URL_PATH','GPC','COMMODITY_WEIGHT',
-//            'HS_CODE','CURRENCY'));
+
         $merchantCode = Pb_Pbgsp_Model_Credentials::getMerchantCode();
 		if($this -> getWeight() == 0)
 		{
@@ -188,15 +179,26 @@ class Pb_Pbgsp_Model_Catalog_Product {
         if($this->product->getPbPbgspPackageLength() > 0) {
             $packageLength = $this->product->getPbPbgspPackageLength();
         }
+//        fputcsv($this->file,array('MERCHANT_COMMODITY_REF_ID','COMMODITY_NAME_TITLE','SHORT_DESCRIPTION',
+//            'LONG_DESCRIPTION','RETAILER_ID','COMMODITY_URL','RETAILER_UNIQUE_ID','PCH_CATEGORY_ID',
+//            'RH_CATEGORY_ID','STANDARD_PRICE','WEIGHT_UNIT','DISTANCE_UNIT','COO','IMAGE_URL','PARENT_SKU',
+//            'CHILD_SKU','PARCELS_PER_SKU','UPC','UPC_CHECK_DIGIT','GTIN','MPN','ISBN','BRAND','MANUFACTURER',
+//            'MODEL_NUMBER','MANUFACTURER_STOCK_NUMBER','COMMODITY_CONDITION','COMMODITY_HEIGHT',
+//            'COMMODITY_WIDTH','COMMODITY_LENGTH','PACKAGE_WEIGHT','PACKAGE_HEIGHT','PACKAGE_WIDTH',
+//            'PACKAGE_LENGTH','HAZMAT','ORMD','CHEMICAL_INDICATOR','PESTICIDE_INDICATOR','AEROSOL_INDICATOR',
+//            'RPPC_INDICATOR','BATTERY_TYPE','NON_SPILLABLE_BATTERY','FUEL_RESTRICTION','SHIP_ALONE',
+//            'RH_CATEGORY_ID_PATH','RH_CATEGORY_NAME_PATH','COMMODITY_WEIGHT'));
         fputcsv($file,array($this -> getSKU(),$name,$shortDescription,$description,$merchantCode,$this -> getURL(),$merchantCode,'',$categoryCode,$this->getPrice(),'lb','',$this->getCountryOfOrigin(),'','',
             '','','','','','','','','',
             '','',$this->getProductCondition(),$commodityHeight,
             $commodityWidth,$commodityLength,$packageWeight,$packageHeight,$packageWidth,
             $packageLength,'','','','','',
-            '','','','',
+            '','','','','',
            strval($category->getData('id_path')),$category->getData('name_path'),$weight
         //,'','','','',$category->getData('store')->getCurrentCurrencyCode()
         ));
+        fseek($file, -1, SEEK_CUR);
+        fwrite($file, "\r\n");
         //fwrite($file, $string);
     }
 

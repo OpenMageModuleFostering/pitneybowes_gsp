@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.0)
- * Packaged:      2016-07-28T17:25:00+00:00
- * Last Modified: 2016-07-26T14:17:00+00:00
+ * Product:       Pb_Pbgsp (1.4.1)
+ * Packaged:      2016-07-26T14:25:00+00:00
+ * Last Modified: 2016-09-13T10:50:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Util.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -62,6 +62,51 @@ class Pb_Pbgsp_Model_Util  {
 
     public static function stripHtml($text)  {
         return preg_replace("/<\s*\/\s*\w\s*.*?>|<\s*br\s*>/",'',preg_replace("/<\s*\w.*?>/", '', $text));
+    }
+
+    public static function getTempDir() {
+        $appRoot = Mage::getRoot();
+        $mageRoot = dirname($appRoot);
+        $configOptions = Mage::getModel('core/config_options');
+        $tmpDir = $mageRoot . '/var/pbgsp/tmp/';
+        $configOptions->createDirIfNotExists( $tmpDir);
+        chmod($tmpDir, 0777);
+        return $tmpDir;
+    }
+
+    public static function getSftpCredentials()
+    {
+        $credentials = array(
+            'host' => Pb_Pbgsp_Model_Credentials::getSftpHostname(),
+            "port" => Pb_Pbgsp_Model_Credentials::getSftpPort(),
+            'username' => Pb_Pbgsp_Model_Credentials::getSftpUsername(),
+            'password' => Pb_Pbgsp_Model_Credentials::getSftpPassword(),
+            'timeout' => '10'
+        );
+        return $credentials;
+    }
+
+    public static function getCPORD($order)
+    {
+        if($order) {
+            $cpOrder = self::getCpOrderNumber($order);
+            if($cpOrder) {
+                return $cpOrder -> getCpOrderNumber();
+            }
+
+        }
+
+        return false;
+    }
+    public static function getCpOrderNumber($order)
+    {
+        if($order) {
+
+            $cpOrder = Mage::getModel("pb_pbgsp/ordernumber")->load($order -> getRealOrderId(),'mage_order_number');
+            return $cpOrder;
+        }
+
+        return false;
     }
 }
 

@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.0)
- * Packaged:      2016-07-28T17:25:00+00:00
- * Last Modified: 2016-07-26T14:17:00+00:00
+ * Product:       Pb_Pbgsp (1.4.1)
+ * Packaged:      2016-07-26T14:25:00+00:00
+ * Last Modified: 2016-09-13T10:50:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Observer.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -407,15 +407,16 @@ class Pb_Pbgsp_Model_Observer {
         else if('email/order/shipment/track.phtml' == $observer->getEvent()->getBlock()->getTemplate()) {
             if(!Mage::getStoreConfig('carriers/pbgsp/trackinglink'))
                 return;
-
-            $cpord = $this->_getCPORD($observer->getEvent()->getBlock()->getOrder());
+            $order = $observer->getEvent()->getBlock()->getOrder();
+            $cpord = $this->_getCPORD($order);
+            $email = $order->getCustomerEmail();
             if($cpord) {
                 $staging = 0;
                 if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox'))
                     $staging = 1;
 				
 				
-                $transport['html'] = "<a href='http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging'>Track your order</a>";
+                $transport['html'] = "<a href='https://parceltracking.pb.com/app/#/dashboard/$cpord/$email'>Track your order</a>";
             }
 
         }

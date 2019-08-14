@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<config>
+
+    <acl>
+        <resources>
+
+            <admin>
+                <children>
+                    <pbgsp module="pbgsp">
+                        <title>PBGSP Module</title>
+                        <children>
+                            <items module="pbgsp">
+                                <title>Category Settings</title>
+
+                            </items>
+                        </children>
+
+                    </pbgsp>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

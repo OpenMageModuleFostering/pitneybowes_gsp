@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.4.0</version>
+            <version>1.4.1</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -62,6 +62,9 @@
                     <inboundparcel>
                         <table>pbgsp_inbound_parcel</table>
                     </inboundparcel>
+                    <shipmentemail>
+                        <table>pbgsp_shipmentemail</table>
+                    </shipmentemail>
                 </entities>
             </pb_pbgsp_mysql4>
             <sales>
@@ -510,6 +513,14 @@
                     <model>pb_pbgsp/Inboundparcel::generateInboundParcelPreAdviceCron</model>
                 </run>
             </pb_generateASN>
+            <pb_shipmentemail>
+                <schedule>
+                    <cron_expr>30 * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>pb_pbgsp/shipmentemail::sendShipmentEmails</model>
+                </run>
+            </pb_shipmentemail>
         </jobs>
     </crontab>
 
@@ -571,21 +582,7 @@
                     </children>
                 </pbgsp>
             </menu>
-            <acl>
-                <resources>
-                    <all>
-                        <title>Allow Everything</title>
-                    </all>
-                    <admin>
-                        <children>
-                            <Pb_Pbgsp>
-                                <title>PBGSP Module</title>
-                                <sort_order>10</sort_order>
-                            </Pb_Pbgsp>
-                        </children>
-                    </admin>
-                </resources>
-            </acl>
+
 
 
 
