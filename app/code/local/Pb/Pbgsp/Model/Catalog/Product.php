@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.2.1)
- * Packaged:      2015-10-07T12:08:45+00:00
- * Last Modified: 2015-10-01T12:11:15+00:00
+ * Product:       Pb_Pbgsp (1.2.3)
+ * Packaged:      2015-11-04T12:13:20+00:00
+ * Last Modified: 2015-10-21T12:09:20+00:00
 
 
 
@@ -57,9 +57,15 @@ class Pb_Pbgsp_Model_Catalog_Product {
      * @return string
      */
     public function getURL() {
-        if($this->_productUrl)
-            return $this->_productUrl;
-        return $this -> product -> getProductUrl();
+        $url = '';
+        if($this->_productUrl) {
+            $url = $this->_productUrl;
+        }
+        else {
+            $url = $this -> product -> getProductUrl();
+        }
+        $url = str_replace('PBGSP_Manual_Catalog_Export.php','index.php',$url);
+        return $url;
     }
 
     /**

@@ -31,6 +31,19 @@ In order to take advantage of the file encryption setting in the extension confi
 ========================================================
 CHANGELOG
 ========================================================
+v. 1.2.3
+
+Fixed an issue with 3rd party checkout extensions where shipping  wouldn’t show correctly when switching back and forth between US and International locations
+
+Small adjustment to force USD as the user's currency selected during the API call to PB
+
+
+v. 1.2.2
+
+Fixed an issue where the RH_CATEGORY_ID_PATH had a leading zero in the child category ID. This was causing duplicate categories in the PB system
+
+Created a manual catalog export tool to be used at the command line. A new file is added at magento root directory: PBGSP_Manual_Catalog_Export.php 
+
 
 v. 1.2.1
 

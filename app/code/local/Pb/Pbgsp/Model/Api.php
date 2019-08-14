@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.2.1)
- * Packaged:      2015-10-07T12:08:45+00:00
- * Last Modified: 2015-10-01T12:11:15+00:00
+ * Product:       Pb_Pbgsp (1.2.3)
+ * Packaged:      2015-11-04T12:13:20+00:00
+ * Last Modified: 2015-10-21T12:09:20+00:00
 
 
 
@@ -236,7 +236,7 @@ class Pb_Pbgsp_Model_Api
             'country' => $address->getCountryId(),
             'postalOrZipCode' => $address->getPostcode()
         );
-        $currency = Mage::app()->getStore()->getCurrentCurrencyCode();
+        $currency = 'USD';//Mage::app()->getStore()->getCurrentCurrencyCode();
         $basket = array(
             'merchantId' => Pb_Pbgsp_Model_Credentials::getMerchantCode(),
             'purchaserIPAddress' => self::getClientIP(),

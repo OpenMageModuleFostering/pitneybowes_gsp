@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.2.1</version>
+            <version>1.2.3</version>
         </Pb_Pbgsp>
     </modules>
     <global>

@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.2.1)
- * Packaged:      2015-10-07T12:08:45+00:00
- * Last Modified: 2015-10-01T12:11:15+00:00
+ * Product:       Pb_Pbgsp (1.2.3)
+ * Packaged:      2015-11-04T12:13:20+00:00
+ * Last Modified: 2015-10-21T12:09:20+00:00
 
 
 
@@ -237,7 +237,11 @@ class Pb_Pbgsp_Model_Catalog_File {
                         $prodCat = $category;
                     $cIds = explode('/',$prodCat->getPath());
                     $cIds = array_slice($cIds,1);//remove root category
-                    $prodCat->setData('id_path',implode(':',$cIds));
+                    $catForIdPath = array();
+                    foreach($cIds as $cid) {
+                        $catForIdPath[] = intval($cid); //to remove leading zero
+                    }
+                    $prodCat->setData('id_path',implode(':',$catForIdPath));
                     $prodCat->setData('name_path',$this->_getCatNamePath($addedCategories,$cIds));
                     if($product->getTypeId() == 'configurable'  ) {
                         $productType = $product->getTypeInstance(true);

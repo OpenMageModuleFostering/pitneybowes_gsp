@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.2.1)
- * Packaged:      2015-10-07T12:08:45+00:00
- * Last Modified: 2015-10-01T12:11:15+00:00
+ * Product:       Pb_Pbgsp (1.2.3)
+ * Packaged:      2015-11-04T12:13:20+00:00
+ * Last Modified: 2015-10-21T12:09:20+00:00
 
 
 
@@ -185,6 +185,9 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
      */
   public function collectRates(Mage_Shipping_Model_Rate_Request $request)
   {
+      Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
+      Mage::getSingleton("customer/session")->setPbOrderNumber(false);
+      Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
   	//Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Carrier_ShippingMethod.collectRates ' . Mage::getStoreConfig('carriers/'.$this->_code.'/active'));
     // skip if not enabled
     if (!Mage::getStoreConfig('carriers/'.$this->_code.'/active')) {
@@ -295,6 +298,9 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
           //if($e->getMessage() == '')
               $message = "We've received an unexpected error while getting your quote. Please try again. If the error persists contact magentosupport@pb.com.";
           $this->_addError($result,$message);
+          Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
+          Mage::getSingleton("customer/session")->setPbOrderNumber(false);
+          Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
 
       }
       return $result;
