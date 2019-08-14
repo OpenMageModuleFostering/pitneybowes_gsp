@@ -31,7 +31,16 @@ In order to take advantage of the file encryption setting in the extension confi
 ========================================================
 CHANGELOG
 ========================================================
-v. 1.0.2
+v. 1.1.0
+
+Added logic to cancel the order in the PB system when a PB order is cancelled in Magento.
+
+Fixed the incremental catalog/product export to only include products and/or category files when one or both are edited in magento (example: if the incremental update is set to every hour and only a single product was updated in any way during the wait period, that product will be included in the next incremental catalog update. The same is true for categories that were updated within the wait period.)
+
+Fixed an issue when empty catalog and category export csv files were created even though there were no updates made.
+
+
+v. 1.0.3
 
 Added compatibility to run in php 5.6.x 
 
@@ -39,6 +48,7 @@ Added compatibility to run in php 5.6.x
 v. 1.0.2
 
 Resolved issue where orders with shipments were not passing additional ASNs. Now an ASN is generated for each shipment per order
+
 
 v. 1.0.1
 

@@ -1,9 +1,10 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.0.3)
- * Packaged:      2015-09-1T15:12:28+00:00
- * Last Modified: 2015-08-25T15:12:28+00:00
+ * Product:       Pb_Pbgsp (1.1.0)
+ * Packaged:      2015-09-9T12:10:00+00:00
+ * Last Modified: 2015-09-1T15:12:28+00:00
+
 
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/File.php
  * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
@@ -146,6 +147,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                     ->addAttributeToSelect('name')
                     ->addAttributeToSelect('pb_pbgsp_upload_active')
                     ->addAttributeToSelect('pb_pbgsp_upload')
+                    ->addAttributeToSelect('updated_at')
                     ->addFieldToFilter('path', array('like'=> "1/$rootId/%"));
                 $addedCategories[] = $rootCat;
 
@@ -180,6 +182,12 @@ class Pb_Pbgsp_Model_Catalog_File {
         fclose($this->file);
         $this->_stripPartFromFileName($part);
         //fwrite($this->file,"</CategoryList>\n<CommodityList>\n");
+        if(count($this->uploadedCategories) == 0) {
+            //remove empty category files.
+            $tmpDir = $this->_getTempDir();
+            $exportedFiles = array_diff(scandir($tmpDir), array('..', '.'));
+            $this->_removeExportedFiles($exportedFiles);
+        }
         $fileRecordCount=0;
         $part=1;
         $this->_createNewCommoditiyFile($part);
@@ -205,6 +213,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                     ->addAttributeToSelect('product_url')
                     ->addAttributeToSelect('type_id')
                     ->addAttributeToSelect('pb_pbgsp_upload')
+                    ->addAttributeToSelect('updated_at')
                     // ->addUrlRewrite($category->getId()) //this will add the url rewrite.
                     ->addAttributeToSelect('price')
                     ->addAttributeToSelect('weight');
@@ -280,6 +289,9 @@ class Pb_Pbgsp_Model_Catalog_File {
         fflush($this->file);
 
         $this->_stripPartFromFileName($part);
+        if(count($this->productIds) == 0) {
+            $this->_removeExportedFilesByeType('catalog');
+        }
     }
 
     private function _getCatNamePath($categories,$cateIds) {
@@ -384,9 +396,13 @@ class Pb_Pbgsp_Model_Catalog_File {
     public function processStatusNotifications() {
         try {
 
+            Pb_Pbgsp_Model_Util::log("Processing status notifications");
             $adminEmail = Pb_Pbgsp_Model_Credentials::getAdminEmail();
-            if(!isset($adminEmail) || $adminEmail=='')
+            if(!isset($adminEmail) || $adminEmail=='') {
+                Pb_Pbgsp_Model_Util::log("Admin email is not set quiting status notification process.");
                 return;
+            }
+
 
             $notificationDir = $this->_getNotificationDir();
             $this->_downloadStatusNotifications($notificationDir);
@@ -481,7 +497,9 @@ class Pb_Pbgsp_Model_Catalog_File {
 
         $credentials = $this->_getSftpCredentials();
         try {
+            //Pb_Pbgsp_Model_Util::log($credentials);
             $sftpDumpFile = new Varien_Io_Sftp();
+            Pb_Pbgsp_Model_Util::log("Connecting SFTP to download notification files.");
             $sftpDumpFile->open(
                 $credentials
             );
@@ -495,8 +513,14 @@ class Pb_Pbgsp_Model_Catalog_File {
             //Pb_Pbgsp_Model_Util::log($files);
 
             $exportedFiles = $this->_getLastExportedFileNames();
-            if(!$exportedFiles)
+            Pb_Pbgsp_Model_Util::log("Last exported files.");
+            Pb_Pbgsp_Model_Util::log($exportedFiles);
+            if(!$exportedFiles) {
+                Pb_Pbgsp_Model_Util::log("exportedFiles is null");
                 return;
+            }
+
+
             foreach($files as $file) {
                 foreach($exportedFiles as $exportedFile) {
                     if($exportedFile == '')
@@ -505,6 +529,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                     if($this->_startsWith($file['text'],$fileNameWithoutExtension)) {
                         $dest = $notificationDir.'/'.$file['text'];
                         $sftpDumpFile->read($file['text'],$dest);
+                        Pb_Pbgsp_Model_Util::log($file['text']. " downloaded from server");
                     }
                 }
 
@@ -512,9 +537,12 @@ class Pb_Pbgsp_Model_Catalog_File {
             $sftpDumpFile->close();
         }
         catch (Exception $e) {
-            Pb_Pbgsp_Model_Util::log($e->getTraceAsString());
-            Pb_Pbgsp_Model_Util::log("Pb Module could not connect to sftp server: ".$credentials['host']." Wrong username/password. Postponing catalog upload.");
-            return;
+            Pb_Pbgsp_Model_Util::log($e->getMessage());
+            //Pb_Pbgsp_Model_Util::log($e->getTraceAsString());
+
+            Pb_Pbgsp_Model_Util::log("Pb Module could not connect to sftp server: ".$credentials['host']." Wrong username/password. Postponing Status Notification process.");
+            Pb_Pbgsp_Model_Util::log($credentials);
+            throw $e;
         }
 
     }
@@ -555,13 +583,13 @@ class Pb_Pbgsp_Model_Catalog_File {
 
         $tmpDir = $this->_getTempDir();
         $exportedFiles = array_diff(scandir($tmpDir), array('..', '.'));
-        if (count($this->productIds) == 0) {
-            // No new products to send, don't send anything.
-            Pb_Pbgsp_Model_Util::log("No new products to send, don't send anything.");
-            $this->_removeExportedFiles($exportedFiles);
-
-            return;
-        }
+//        if (count($this->productIds) == 0) {
+//            // No new products to send, don't send anything.
+//            Pb_Pbgsp_Model_Util::log("No new products to send, don't send anything.");
+//            $this->_removeExportedFiles($exportedFiles);
+//
+//            return;
+//        }
 
         Pb_Pbgsp_Model_Util::log("Pb catalog file upload started");
         try {
@@ -603,6 +631,7 @@ class Pb_Pbgsp_Model_Catalog_File {
             $sftpDumpFile->close();
 
         } catch (Exception $e) {
+            Pb_Pbgsp_Model_Util::log($e->getMessage());
             Pb_Pbgsp_Model_Util::log($e->getTraceAsString());
             Pb_Pbgsp_Model_Util::log("Pb Module could not connect to sftp server: ".$credentials['host']." Wrong username/password. Postponing catalog upload.");
             return;
@@ -631,9 +660,11 @@ class Pb_Pbgsp_Model_Catalog_File {
     }
     private function _getLastExportedFileNames() {
         $exportedFilesVariable = $this->_getExportedFilesVariable();
-        if(!isset($exportedFilesVariable) || $exportedFilesVariable->getValue() != '')
+
+        if(!isset($exportedFilesVariable) || $exportedFilesVariable->getValue() == '')
             return false;
         $exportedFiles = explode('|',$exportedFilesVariable->getValue());
+
         return $exportedFiles;
     }
     private function _logExportedFileInDB($exportedFiles) {
@@ -670,6 +701,24 @@ class Pb_Pbgsp_Model_Catalog_File {
     }
 
 
+    private function _removeExportedFilesByeType($fileType) {
+        $tmpDir = $this->_getTempDir();
+        $exportedFiles = array_diff(scandir($tmpDir), array('..', '.'));
+        foreach($exportedFiles as $exportedFile) {
+            $fileName = $tmpDir . $exportedFile;
+            if(is_dir($fileName))
+                continue;
+            if(strpos($fileName,$fileType) !== false) {
+
+                unlink($fileName);
+                $fileName = str_replace(".gpg","",$fileName);//remove unencrypted file
+                if(is_file($fileName))
+                    unlink($fileName);
+            }
+
+
+        }
+    }
 
 
 

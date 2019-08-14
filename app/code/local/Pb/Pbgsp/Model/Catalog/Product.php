@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.3)
- * Packaged:      2015-09-1T15:12:28+00:00
- * Last Modified: 2015-08-25T15:12:28+00:00
+ * Product:       Pb_Pbgsp (1.1.0)
+ * Packaged:      2015-09-9T12:10:00+00:00
+ * Last Modified: 2015-09-1T15:12:28+00:00
+
 
 
 
@@ -179,12 +180,16 @@ class Pb_Pbgsp_Model_Catalog_Product {
      */
     public function shouldUpload($lastDiff) {
 
+        if(!$lastDiff)
+            return true; // full catalog upload
         $lastUpload = $this -> product -> getPbPbgspUpload();
+        $updatedAt = $this->product->getUpdatedAt();
+        Pb_Pbgsp_Model_Util::log($this->getSKU()." lastUpload:$lastUpload  UpdatedAt:$updatedAt");
         //Pb_Pbgsp_Model_Util::log('Product '. $this -> getSKU() . ' lastUpload='. $lastUpload . '   '. date('m-d-Y H:i:s',$lastUpload));
         if (!$lastUpload) {
             // First upload.
             return true;
-        } else if ($lastDiff <= $lastUpload - (30 * 60)) {
+        } else if ($lastUpload < $updatedAt) {
             // Added after the last diff
             return true;
         } else {

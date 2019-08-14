@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.3)
- * Packaged:      2015-09-1T15:12:28+00:00
- * Last Modified: 2015-08-25T15:12:28+00:00
+ * Product:       Pb_Pbgsp (1.1.0)
+ * Packaged:      2015-09-9T12:10:00+00:00
+ * Last Modified: 2015-09-1T15:12:28+00:00
+
 
 
 
@@ -39,14 +40,39 @@
             $configOptions->createDirIfNotExists($mageRoot.'/var/pbgsp');
             chmod($mageRoot . '/var/pbgsp/', 0777);
 
-            if (!isset($this->lastFull) || $this->lastFull->getValue() < time() - $fullPeriod*24*3600) {
+            $lastFull = '';
+            $lastDiff = '';
+            $currentTime = time();
+
+            $fullPeriodSeconds = $fullPeriod*24*3600;
+            $diffPeriodSeconds = $diffPeriod*3600;
+            if(isset($this->lastFull))
+                $lastFull = $this->lastFull->getValue();
+            if(isset($this->lastDiff))
+                $lastDiff = $this->lastDiff->getValue();
+
+//            Pb_Pbgsp_Model_Util::log("Current time:" . date('m-d-Y H:i:s',$currentTime)."\n");
+//            Pb_Pbgsp_Model_Util::log("Lastfull:".date('m-d-Y H:i:s',$lastFull)."\n" );
+//            Pb_Pbgsp_Model_Util::log("LastDiff:".date('m-d-Y H:i:s',$lastDiff)."\n");
+//            Pb_Pbgsp_Model_Util::log("fullPeriodSeconds:$fullPeriodSeconds\n");
+//            Pb_Pbgsp_Model_Util::log("diffPeriodSeconds:$diffPeriodSeconds\n");
+
+            $fulPeriodDiff = $currentTime - $fullPeriodSeconds;
+            $diffPeriodDiff = $currentTime - $diffPeriodSeconds;
+//            Pb_Pbgsp_Model_Util::log("fulPeriodDiff :" . $fulPeriodDiff ."\n");
+//            Pb_Pbgsp_Model_Util::log("diffPeriodDiff : ". $diffPeriodDiff . "\n");
+//            Pb_Pbgsp_Model_Util::log("lastFull - fulPeriodDiff : ". ($lastFull - $fulPeriodDiff ) . "\n");
+//            Pb_Pbgsp_Model_Util::log("lastFull - diffPeriodDiff : ". ($lastFull - $diffPeriodDiff ) . "\n");
+//            Pb_Pbgsp_Model_Util::log("lastDiff - diffPeriodDiff : ". ($lastDiff - $diffPeriodDiff ) . "\n");
+
+            if (!isset($this->lastFull) || $this->lastFull->getValue() < time() - $fullPeriodSeconds) {
 				// Full catalog upload needed
 				$this->uploadCatalog();
-			} else if (!isset($this->lastDiff) && $this->lastFull->getValue() < time() - $diffPeriod*3600) {
+			} else if (!isset($this->lastDiff) && $this->lastFull->getValue() < time() - $diffPeriodSeconds) {
 				// First catalog diff upload
 				$this->uploadCatalog($this->lastFull);
-			} else if (isset($this->lastDiff) && ($this->lastDiff->getValue() < time() - $diffPeriod*3600 &&
-												  $this->lastFull->getValue() < time() - $diffPeriod*3600)) {
+			} else if (isset($this->lastDiff) && ($this->lastDiff->getValue() < time() - $diffPeriodSeconds &&
+												  $this->lastFull->getValue() < time() - $diffPeriodSeconds)) {
 				// Catalog diff upload
 				$this->uploadCatalog($this->lastDiff);
 			}
@@ -60,6 +86,7 @@
 		public function uploadCatalog($lastDiff = false) {
 			if (!$lastDiff) {
 				Pb_Pbgsp_Model_Util::log("Full catalog upload");
+                Pb_Pbgsp_Model_Util::log("Full catalog upload\n");
 				$file = new Pb_Pbgsp_Model_Catalog_File();
 				if (isset($this->lastFull)) {
 					$this->lastFull->setValue(time());
@@ -68,9 +95,10 @@
 					$this->lastFull->setName("lastFull");
 					$this->lastFull->setValue(time());
 				}
-				$this->lastFull->save();
+
 			} else {
 				Pb_Pbgsp_Model_Util::log("catalog diff");
+                Pb_Pbgsp_Model_Util::log("catalog diff\n");
 				$file = new Pb_Pbgsp_Model_Catalog_File($lastDiff->getValue());
 				if (isset($this->lastDiff)) {
 					$this->lastDiff->setValue(time());
@@ -79,19 +107,23 @@
 					$this->lastDiff->setName("lastDiff");
 					$this->lastDiff->setValue(time());
 				}
-				$this->lastDiff->save();
+
 			}
 
 			Pb_Pbgsp_Model_Util::log("RAY:Create Function Started");
 
- $file->createNew();
+            $file->createNew();
 
-Pb_Pbgsp_Model_Util::log("RAY:Create Function Complete");
+            Pb_Pbgsp_Model_Util::log("RAY:Create Function Complete");
 
-Pb_Pbgsp_Model_Util::log("RAY:upload Started");
-$file->upload();
-$file->logProdWithoutCategories();
-Pb_Pbgsp_Model_Util::log("RAY:upload Complete");
+            Pb_Pbgsp_Model_Util::log("RAY:upload Started");
+            $file->upload();
+            if($this->lastFull)
+                $this->lastFull->save();
+            if($this->lastDiff)
+                $this->lastDiff->save();
+            $file->logProdWithoutCategories();
+            Pb_Pbgsp_Model_Util::log("RAY:upload Complete");
         }
 
         public function processStatusNotifications() {

@@ -1,9 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.1.0)
- * Packaged:      2015-09-9T12:10:00+00:00
- * Last Modified: 2015-09-1T15:12:28+00:00
-
+ * Product:       Pb_Pbgsp (1.0.3)
+ * Packaged:      2015-09-1T15:12:28+00:00
+ * Last Modified: 2015-08-25T15:12:28+00:00
 
 
 
@@ -128,33 +127,6 @@ class Pb_Pbgsp_Model_Observer {
 //				$orderNumber->setReferenced(true);
 //				$orderNumber->save();
 //			}
-		}
-        else {
-            Pb_Pbgsp_Model_Util::log("$mageOrderNumber not PB order");
-        }
-
-	}
-	
-	/* This observer method get called on cancel order event in Magento
-	   Created by: Sudarshan
-	   Date: 02/09/2015
-	  
-	*/
-	public function cancelPbOrder($observer) {
-      
-		$mageOrderNumber = $observer->getEvent()->getOrder()->getId();
-		$order = $observer->getEvent()->getOrder();
-				
-		if ($this->isPbOrder($order)) {
-          
-			$clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
-            $clearPathOrders -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
-            foreach ($clearPathOrders as $cpOrder) {
-				$cpOrderNumber = $cpOrder -> getCpOrderNumber();
-				if (Pb_Pbgsp_Model_Api::cancelOrder($cpOrderNumber)) {
-						Pb_Pbgsp_Model_Util::log(" $mageOrderNumber order is cancel in PB");
-				}  
-			}
 		}
         else {
             Pb_Pbgsp_Model_Util::log("$mageOrderNumber not PB order");

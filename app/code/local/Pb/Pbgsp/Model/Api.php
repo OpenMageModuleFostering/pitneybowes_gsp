@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.3)
- * Packaged:      2015-09-1T15:12:28+00:00
- * Last Modified: 2015-08-25T15:12:28+00:00
+ * Product:       Pb_Pbgsp (1.1.0)
+ * Packaged:      2015-09-9T12:10:00+00:00
+ * Last Modified: 2015-09-1T15:12:28+00:00
+
 
 
 
@@ -385,6 +386,33 @@ class Pb_Pbgsp_Model_Api
         }
         catch(Exception $e) {
             Pb_Pbgsp_Model_Util::log("Received unexpected exception from Pb while calling createOrder.");
+            Pb_Pbgsp_Model_Util::logException($e);
+
+
+        }
+
+    }
+	
+	/* This is API method for cancel order in PB
+	   Created by: Sudarshan
+	   Date: 02/09/2015
+	  
+	*/
+	public static function cancelOrder($cpOrderNumber) {
+
+        try {
+            Pb_Pbgsp_Model_Util::log('cancelling order in clearpath ',$cpOrderNumber);
+			$requestBody = array();
+            $url = Pb_Pbgsp_Model_Credentials::getOrderMgmtAPIUrl().'/orders/'.$cpOrderNumber.'/cancel';
+			$response = self::CallAPI('POST',$url,$requestBody);
+			$cancelOrderResponse = json_decode($response,true);
+			Pb_Pbgsp_Model_Util::log('Response of cancel order');
+			Pb_Pbgsp_Model_Util::log($cancelOrderResponse);
+			return $cancelOrderResponse;
+
+        }
+        catch(Exception $e) {
+            Pb_Pbgsp_Model_Util::log("Received unexpected exception from Pb while calling cancel Order.");
             Pb_Pbgsp_Model_Util::logException($e);
 
 

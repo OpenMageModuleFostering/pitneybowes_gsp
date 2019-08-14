@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.1.0</version>
+            <version>1.0.1</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -495,16 +495,7 @@
                     </Pb_Pbgsp_CreateParcel>
                 </observers>
             </sales_order_shipment_save_after>
-			<order_cancel_after>
-                <observers>
-                    <Pb_Pbgsp_CreateParcel>
-                        <type>model</type>
-                        <class>pb_pbgsp/observer</class>
-                        <method>cancelPbOrder</method>
-                    </Pb_Pbgsp_CreateParcel>
-                </observers>
-            </order_cancel_after>
-	    </events>
+        </events>
         <!--<translate>-->
             <!--<modules>-->
                 <!--<translations>-->
