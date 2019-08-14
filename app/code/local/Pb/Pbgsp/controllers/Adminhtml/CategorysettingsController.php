@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.2)
- * Packaged:      2016-01-11T11:12:49+00:00
- * Last Modified: 2015-12-18T11:00:00+00:00
+ * Product:       Pb_Pbgsp (1.3.7)
+ * Packaged:      2016-06-01T14:02:28+00:00
+ * Last Modified: 2016-04-14T14:05:10+00:00
  */
 
 class Pb_Pbgsp_Adminhtml_CategorysettingsController extends Mage_Adminhtml_Controller_Action {

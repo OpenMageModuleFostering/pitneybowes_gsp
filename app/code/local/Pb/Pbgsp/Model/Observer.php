@@ -1,13 +1,10 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.2)
- * Packaged:      2016-01-11T11:12:49+00:00
- * Last Modified: 2015-12-18T11:00:00+00:00
-
-
-
+ * Product:       Pb_Pbgsp (1.3.7)
+ * Packaged:      2016-06-01T14:02:28+00:00
+ * Last Modified: 2016-04-14T14:05:10+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Observer.php
- * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 class Pb_Pbgsp_Model_Observer {
  const MODULE_NAME = 'Pb_Pbgsp';
@@ -42,83 +39,99 @@ class Pb_Pbgsp_Model_Observer {
 
 		return substr($shipMethod,strlen("pbgsp_"));
 	}
+    public function salesOrderShipmentTrackSaveAfter($observer) {
 
-    public function generateInboundParcelPreAdvice($observer) {
+        if(Pb_Pbgsp_Model_Credentials::isASNGenerationEnabled() == '1' && Pb_Pbgsp_Model_Credentials::isGenerateAsnOnAddTrack() == '1') {
+            Pb_Pbgsp_Model_Util::log('salesOrderShipmentTrackSaveAfter');
+            $track = $observer->getTrack();
+            Pb_Pbgsp_Model_Util::log($track->getNumber());
+            $shipment = $track->getShipment();
+            $this->generateASN($shipment);
+        }
 
-        if(Pb_Pbgsp_Model_Credentials::isASNGenerationEnabled() == '1') {
-            try {
-                $shipment = $observer->getEvent()->getShipment();
-                $order = $shipment->getOrder();
-				$shipId = $shipment['entity_id'];
-				
-                /* @var $order Mage_Sales_Model_Order */
 
-                if(!$this->isPbOrder($order))
-                    return;
-                //check if ASN already generated or not
-                $parcel = Mage::getModel("pb_pbgsp/inboundparcel")-> getCollection();
-                $parcel -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
-                $parcel->addFieldToFilter('mage_order_shipment_number',$shipId);
+    }
+    private function generateASN($shipment) {
+        try {
 
-                if(count($parcel) > 0)
-                    return;
-                Pb_Pbgsp_Model_Util::log("Generting ASN.");
-                $clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
-                $clearPathOrders -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
-                foreach ($clearPathOrders as $cpOrder) {
-                    $cpOrderNumber = $cpOrder -> getCpOrderNumber();
-                    $tracks = array();
-                    $items = array();
-                    foreach($shipment->getTracksCollection() as $track) {
-                        $tracks[] = $track;
-                    }
-                    foreach($shipment->getItemsCollection() as $item) {
+            $order = $shipment->getOrder();
+            $shipId = $shipment['entity_id'];
 
-                        $items[] = $item;
+            /* @var $order Mage_Sales_Model_Order */
 
-                    }
-					
-                    $parcelResponse = Pb_Pbgsp_Model_Api::generateInboundParcelNumber($shipment,$items,$order,$cpOrderNumber);
-					
-                    if(array_key_exists('errors',$parcelResponse)) {
-                        Pb_Pbgsp_Model_Util::log("Error generating inbound parcel");
-                        Pb_Pbgsp_Model_Util::log($parcelResponse);
-                    }
-                    else {
-						
-						//Save entry in table
-                        $cpParcel = Mage::getModel('pb_pbgsp/inboundparcel');
-                        $cpParcel->setInboundParcel($parcelResponse['parcelIdentifier']);
-                        $cpParcel->setMageOrderNumber( $order->getRealOrderId());
-                        $cpParcel->setPbOrderNumber( $cpOrderNumber);
-						$cpParcel->setMageOrderShipmentNumber( $shipId);
-                        $cpParcel->save();
-						
-						// add the tracking info magento
-						$track = Mage::getModel('sales/order_shipment_track')
-										 ->setShipment($shipment)
-										 ->setData('title', 'PB')
-										 ->setData('number',$parcelResponse['parcelIdentifier'])
-										 ->setData('carrier_code', 'pbgsp')
-										 ->setData('order_id', $shipment->getData('order_id'))
-										 ->save();
-				 
-                        Pb_Pbgsp_Model_Util::log('Inbound Parcel Number Saved');
-                    }
+            if(!$this->isPbOrder($order))
+                return;
+            //check if ASN already generated or not
+            $parcel = Mage::getModel("pb_pbgsp/inboundparcel")-> getCollection();
+            $parcel -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
+            $parcel->addFieldToFilter('mage_order_shipment_number',$shipId);
+
+            if(count($parcel) > 0)
+                return;
+            Pb_Pbgsp_Model_Util::log("Generting ASN.");
+            $clearPathOrders = Mage::getModel("pb_pbgsp/ordernumber")-> getCollection();
+            $clearPathOrders -> addFieldToFilter('mage_order_number', $order -> getRealOrderId());
+            foreach ($clearPathOrders as $cpOrder) {
+                $cpOrderNumber = $cpOrder -> getCpOrderNumber();
+                $tracks = array();
+                $items = array();
+                foreach($shipment->getTracksCollection() as $track) {
+                    $tracks[] = $track;
+                }
+                foreach($shipment->getItemsCollection() as $item) {
+
+                    $items[] = $item;
 
                 }
 
+                $parcelResponse = Pb_Pbgsp_Model_Api::generateInboundParcelNumber($shipment,$items,$order,$cpOrderNumber);
+
+                if(array_key_exists('errors',$parcelResponse)) {
+                    Pb_Pbgsp_Model_Util::log("Error generating inbound parcel");
+                    Pb_Pbgsp_Model_Util::log($parcelResponse);
+                }
+                else {
+
+                    //Save entry in table
+                    $cpParcel = Mage::getModel('pb_pbgsp/inboundparcel');
+                    $cpParcel->setInboundParcel($parcelResponse['parcelIdentifier']);
+                    $cpParcel->setMageOrderNumber( $order->getRealOrderId());
+                    $cpParcel->setPbOrderNumber( $cpOrderNumber);
+                    $cpParcel->setMageOrderShipmentNumber( $shipId);
+                    $cpParcel->save();
+
+                    // add the tracking info magento
+                    $track = Mage::getModel('sales/order_shipment_track')
+                        ->setShipment($shipment)
+                        ->setData('title', 'PB')
+                        ->setData('number',$parcelResponse['parcelIdentifier'])
+                        ->setData('carrier_code', 'pbgsp')
+                        ->setData('description',$cpOrderNumber)
+                        ->setData('order_id', $shipment->getData('order_id'))
+                        ->save();
+
+                    Pb_Pbgsp_Model_Util::log('Inbound Parcel Number Saved');
+                }
 
             }
-            catch(Exception $e) {
-                Pb_Pbgsp_Model_Util::log("Error creating inbound parcel. ");
-                Pb_Pbgsp_Model_Util::logException($e);
-            }
+
+
+        }
+        catch(Exception $e) {
+            Pb_Pbgsp_Model_Util::log("Error creating inbound parcel. ");
+            Pb_Pbgsp_Model_Util::logException($e);
+        }
+    }
+    public function generateInboundParcelPreAdvice($observer) {
+
+        if(Pb_Pbgsp_Model_Credentials::isASNGenerationEnabled() == '1' && Pb_Pbgsp_Model_Credentials::isGenerateAsnOnAddTrack() != '1') {
+            $shipment = $observer->getEvent()->getShipment();
+            $this->generateASN($shipment);
         }
 
     }
 	public function createPbOrder($observer) {
-       // Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.createPbOrder');
+        Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.createPbOrder');
 		Mage::getSingleton("customer/session")->setPbDutyAndTax(0);
 		$mageOrderNumber = Mage::getSingleton('checkout/session')->getLastRealOrderId();
 		$order = Mage::getModel('sales/order')->loadByIncrementId($mageOrderNumber);
@@ -221,6 +234,7 @@ class Pb_Pbgsp_Model_Observer {
 	
 	public function saveShippingMethod($observer) {
         Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.saveShippingMethod');
+
 		//TODO: If anything fails here I need to fail the checkout process.
 		$address = $observer->getQuote()->getShippingAddress();
         Pb_Pbgsp_Model_Util::log($address->getShippingMethod());
@@ -234,11 +248,33 @@ class Pb_Pbgsp_Model_Observer {
 			if (!$order) {
 				Mage::throwException("Unable to create Pb order.");
 			}
-
+            Mage::getSingleton("customer/session")->setPbOrder($order);
             $tax = $order['order']['totalImportation']['total']['value'];
 
             if(Pb_Pbgsp_Model_Credentials::isFreeTaxEnabled())
                 $tax = 0;
+            else {
+                //set the tax for each item in quote
+//                foreach($address->getAllItems() as $item) {
+//                    /* @var Mage_Sales_Model_Quote_Item $item */
+//                    foreach($order['order']['quoteLines'] as $quoteLine) {
+//                        $sku = $quoteLine['merchantComRefId'];
+//                        if($item->getSku() == $sku) {
+//                            $itemBaseTax = $quoteLine['unitImportation']['total']['value'];
+//                            $item->setBaseTaxAmount(floatval($itemBaseTax));
+//                            $itemTax = $itemBaseTax;
+//                            if(Mage::app()->getStore()->getCurrentCurrencyCode() != 'USD') {
+//
+//                                $itemTax = Mage::app()->getStore()->convertPrice($itemBaseTax);
+//
+//                            }
+//                            $item->setTaxAmount($itemTax);
+//                            $item->save();
+//                        }
+//                    }
+//                    $address->save();
+//                }
+            }
             Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD($tax);
             if(Mage::app()->getStore()->getCurrentCurrencyCode() != 'USD') {
 
@@ -263,15 +299,17 @@ class Pb_Pbgsp_Model_Observer {
 			Mage::getSingleton("customer/session")->setPbOrderNumber($orderNumber);
 		} else {
             Pb_Pbgsp_Model_Util::log(" not clearpath order");
-			Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
-			Mage::getSingleton("customer/session")->setPbOrderNumber(false);
-            Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
+			Mage::getSingleton("customer/session")->setPbDutyAndTax(0);
+			Mage::getSingleton("customer/session")->setPbOrderNumber(0);
+            Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(0);
+            Mage::getSingleton("customer/session")->setPbOrder(0);
 		}
 	}
 
+
     public function addDutiesOnEstimation($observer){
-        //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.addDutiesOnEstimation');
-        Mage::getSingleton("customer/session")->setPbDutyAndTax(false);//Added by BigPixel to clear previous values, 10/20/2013
+        Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.addDutiesOnEstimation');
+        Mage::getSingleton("customer/session")->setPbDutyAndTax(0);//Added by BigPixel to clear previous values, 10/20/2013
         $clearPathMethods = Mage::getSingleton('checkout/session')->getPbMethods();
         $quote = Mage::getSingleton('checkout/session')->getQuote();
         $selectedMethod = null;
@@ -329,7 +367,7 @@ class Pb_Pbgsp_Model_Observer {
                               <span>".$cpOrderNumber->getHubCity()."</span><br/>
                               <strong>Hub Country</strong>
                               <span>".$cpOrderNumber->getHubCountry()."</span><br/>
-							  <strong>Original Shiiping Address</strong>
+							  <strong>Original Shipping Address</strong>
                               <span>".$cpOrderNumber->getOriginalShippingAddress()."</span><br/>
                             </fieldset>
                         </div>";
@@ -405,7 +443,7 @@ class Pb_Pbgsp_Model_Observer {
                 $html = str_replace("Shipping &amp; Handling","Transportation Charges",$html);
                 $html = str_replace("Shipping & Handling","Transportation Charges",$html);
                 $html = str_replace("Duty & Taxes","Importation Charges",$html);
-                $html = str_replace("Duty &amp; Taxes","Importation Charges",$html);
+                //$html = str_replace("Duty &amp; Taxes","Importation Charges",$html);
                 $transport['html'] = $html;
             }
 

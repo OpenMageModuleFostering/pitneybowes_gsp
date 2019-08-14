@@ -1,16 +1,10 @@
 <?php
-
 /**
- * Product:       Pb_Pbgsp (1.3.2)
- * Packaged:      2016-01-11T11:12:49+00:00
- * Last Modified: 2015-12-18T11:00:00+00:00
-
-
-
-
-
+ * Product:       Pb_Pbgsp (1.3.7)
+ * Packaged:      2016-06-01T14:02:28+00:00
+ * Last Modified: 2016-04-14T14:05:10+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Carrier/ShippingMethod.php
- * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_Abstract
 {
@@ -188,10 +182,10 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
      */
   public function collectRates(Mage_Shipping_Model_Rate_Request $request)
   {
-      Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
+      Mage::getSingleton("customer/session")->setPbDutyAndTax(0);
 
-      Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
-  	//Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Carrier_ShippingMethod.collectRates ' . Mage::getStoreConfig('carriers/'.$this->_code.'/active'));
+      Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(0);
+  	Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Carrier_ShippingMethod.collectRates ' . Mage::getStoreConfig('carriers/'.$this->_code.'/active'));
     // skip if not enabled
     if (!Mage::getStoreConfig('carriers/'.$this->_code.'/active')) {
         return false;
@@ -301,9 +295,9 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
           //if($e->getMessage() == '')
               $message = "We've received an unexpected error while getting your quote. Please try again. If the error persists contact magentosupport@pb.com.";
           $this->_addError($result,$message);
-          Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
+          Mage::getSingleton("customer/session")->setPbDutyAndTax(0);
 
-          Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
+          Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(0);
 
       }
       return $result;
@@ -326,5 +320,49 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
 	public function isTrackingAvailable(){
 		return true;
 	}
+	
+	public function getTrackingInfo($tracking)
+	{
+		$track = Mage::getModel('shipping/tracking_result_status');
+		$track->setUrl('http://tracking.ecommerce.pb.com/track/' . $tracking.'?staging=0')
+			->setTracking($tracking)
+			->setCarrierTitle($this->getConfigData('name'));
+		return $track;
+	}
+	
+	public function checkAvailableShipCountries(Mage_Shipping_Model_Rate_Request $request)
+    {
+        $speCountriesAllow = $this->getConfigData('sallowspecific');
+        /*
+        * for specific countries, the flag will be 1
+        */
+        if ($speCountriesAllow && $speCountriesAllow == 1){
+             $showMethod = $this->getConfigData('showmethod');
+             $availableCountries = array();
+             if($this->getConfigData('specificcountry')) {
+                $availableCountries = explode(',',$this->getConfigData('specificcountry'));
+             }
+             if ($availableCountries && in_array($request->getDestCountryId(), $availableCountries)) {
+                 return $this;
+             } elseif ($showMethod && (!$availableCountries || ($availableCountries
+                 && !in_array($request->getDestCountryId(), $availableCountries))) && ($request->getDestCountryId() != 'US')
+             ){
+                   $error = Mage::getModel('shipping/rate_result_error');
+                   $error->setCarrier($this->_code);
+                   $error->setCarrierTitle($this->getConfigData('title'));
+                   $errorMsg = $this->getConfigData('specificerrmsg');
+                   $error->setErrorMessage($errorMsg ? $errorMsg : Mage::helper('shipping')->__('The shipping module is not available for selected delivery country.'));
+                   return $error;
+             } else {
+                 /*
+                * The admin set not to show the shipping module if the devliery country is not within specific countries
+                */
+                return false;
+             }
+        }
+        return $this;
+    }
+	
+	
 }
 ?>

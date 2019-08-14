@@ -1,15 +1,10 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.3.2)
- * Packaged:      2016-01-11T11:12:49+00:00
- * Last Modified: 2015-12-18T11:00:00+00:00
-
-
-
-
-
+ * Product:       Pb_Pbgsp (1.3.7)
+ * Packaged:      2016-06-01T14:02:28+00:00
+ * Last Modified: 2016-04-14T14:05:10+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/Product.php
- * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 /**
  * Class Pb_Pbgsp_Model_Catalog_Product
@@ -163,11 +158,39 @@ class Pb_Pbgsp_Model_Catalog_Product {
 		}else{
 			$weight = $this -> getWeight();
 		}
+        $commodityHeight = '';
+        if($this->product->getPbPbgspCommodityHeight() > 0) {
+            $commodityHeight = $this->product->getPbPbgspCommodityHeight();
+        }
+        $commodityWidth = '';
+        if($this->product->getPbPbgspCommodityWidth() > 0) {
+            $commodityWidth = $this->product->getPbPbgspCommodityWidth();
+        }
+        $commodityLength = '';
+        if($this->product->getPbPbgspCommodityLength() > 0) {
+            $commodityLength = $this->product->getPbPbgspCommodityLength();
+        }
+        $packageWeight = '';
+        if($this->product->getPbPbgspPackageWeight() > 0) {
+            $packageWeight = $this->product->getPbPbgspPackageWeight();
+        }
+        $packageHeight = '';
+        if($this->product->getPbPbgspPackageHeight() > 0) {
+            $packageHeight = $this->product->getPbPbgspPackageHeight();
+        }
+        $packageWidth = '';
+        if($this->product->getPbPbgspPackageWidth() > 0) {
+            $packageWidth = $this->product->getPbPbgspPackageWidth();
+        }
+        $packageLength = '';
+        if($this->product->getPbPbgspPackageLength() > 0) {
+            $packageLength = $this->product->getPbPbgspPackageLength();
+        }
         fputcsv($file,array($this -> getSKU(),$name,$shortDescription,$description,$merchantCode,$this -> getURL(),$merchantCode,'',$categoryCode,$this->getPrice(),'lb','',$this->getCountryOfOrigin(),'','',
             '','','','','','','','','',
-            '','',$this->getProductCondition(),'',
-            '','','','','',
-            '','','','','','',
+            '','',$this->getProductCondition(),$commodityHeight,
+            $commodityWidth,$commodityLength,$packageWeight,$packageHeight,$packageWidth,
+            $packageLength,'','','','','',
             '','','','',
            strval($category->getData('id_path')),$category->getData('name_path'),$weight
         //,'','','','',$category->getData('store')->getCurrentCurrencyCode()

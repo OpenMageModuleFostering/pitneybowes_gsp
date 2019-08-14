@@ -1,16 +1,10 @@
 <?php
-
 /**
- * Product:       Pb_Pbgsp (1.3.2)
- * Packaged:      2016-01-11T11:12:49+00:00
- * Last Modified: 2015-12-18T11:00:00+00:00
-
-
-
-
-
+ * Product:       Pb_Pbgsp (1.3.7)
+ * Packaged:      2016-06-01T14:02:28+00:00
+ * Last Modified: 2016-04-14T14:05:10+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Quote/Duty.php
- * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 
 class Pb_Pbgsp_Model_Quote_Duty extends Mage_Tax_Model_Sales_Total_Quote_Tax
@@ -29,7 +23,7 @@ class Pb_Pbgsp_Model_Quote_Duty extends Mage_Tax_Model_Sales_Total_Quote_Tax
     }
     
     public function getDutyAndTax() {
-        //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.getDutyAndTax');
+        Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.getDutyAndTax');
 	    $amount = Mage::getSingleton("customer/session")->getPbDutyAndTax();
         if($amount) {
             if(Mage::app()->getStore()->getCurrentCurrencyCode() == 'USD')
@@ -47,22 +41,44 @@ class Pb_Pbgsp_Model_Quote_Duty extends Mage_Tax_Model_Sales_Total_Quote_Tax
      */
     public function collect(Mage_Sales_Model_Quote_Address $address)
     {
-        //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.collect');
+        Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.collect');
         parent::collect($address);
+                        foreach($address->getAllItems() as $item) {
+                    /* @var Mage_Sales_Model_Quote_Item $item */
+                            $order = Mage::getSingleton("customer/session")->getPbOrder();
+                            if($order) {
+                                foreach($order['order']['quoteLines'] as $quoteLine) {
+                                    $sku = $quoteLine['merchantComRefId'];
+                                    if($item->getSku() == $sku) {
+                                        $itemBaseTax = $quoteLine['lineImportation']['total']['value'];
+                                        $item->setBaseTaxAmount(floatval($itemBaseTax));
+                                        $itemTax = $itemBaseTax;
+                                        if(Mage::app()->getStore()->getCurrentCurrencyCode() != 'USD') {
 
+                                            $itemTax = Mage::app()->getStore()->convertPrice($itemBaseTax);
+
+                                        }
+                                        $item->setTaxAmount($itemTax);
+                                        //$item->save();
+                                    }
+                                }
+                            }
+
+
+                }
         $allowSpecific = Mage::getStoreConfig('carriers/pbgsp/sallowspecific');
         if($allowSpecific) {
             $activeCountries = Mage::getStoreConfig('carriers/pbgsp/specificcountry');
 
             if(!(strpos($activeCountries,$address->getCountryId()) !== false)) {
                 //Pb_Pbgsp_Model_Util::log($address->getCountryId().' not found');
-                Mage::getSingleton("customer/session")->setPbDutyAndTax(false);
+                Mage::getSingleton("customer/session")->setPbDutyAndTax(0);
 
-                Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(false);
+                Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD(0);
                 return $this;
             }
         }
-		if ($this->getDutyAndTax()) {
+		if ($this->getDutyAndTax() && Pb_Pbgsp_Model_Util::isPbOrder($address->getShippingMethod())) {
             $items = $this->_getAddressItems($address);
             if (!count($items)) {
                 return $this;
@@ -83,9 +99,9 @@ class Pb_Pbgsp_Model_Quote_Duty extends Mage_Tax_Model_Sales_Total_Quote_Tax
      */
     public function fetch(Mage_Sales_Model_Quote_Address $address)
     {
-        //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.fetch');
+        Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Quote_Duty.fetch');
         $amount = $this->getDutyAndTax();
-		if ($amount) {
+		if ($amount && Pb_Pbgsp_Model_Util::isPbOrder($address->getShippingMethod())) {
 			if($this->dutyDisplayed) {
 				return $this;
 			}

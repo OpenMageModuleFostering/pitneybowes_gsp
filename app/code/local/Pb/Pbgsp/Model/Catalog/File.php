@@ -1,14 +1,11 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.3.2)
- * Packaged:      2016-01-11T11:12:49+00:00
- * Last Modified: 2015-12-18T11:00:00+00:00
-
-
-
+ * Product:       Pb_Pbgsp (1.3.7)
+ * Packaged:      2016-06-01T14:02:28+00:00
+ * Last Modified: 2016-04-14T14:05:10+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/File.php
- * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
+ * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
 
 class Pb_Pbgsp_Model_Catalog_File {
@@ -223,6 +220,13 @@ class Pb_Pbgsp_Model_Catalog_File {
                     ->addAttributeToSelect('pb_pbgsp_product_condition')
                     ->addAttributeToSelect('pb_pbgsp_upload_delete')
                     ->addAttributeToSelect('pb_pbgsp_upload_deleted_on')
+                    ->addAttributeToSelect('pb_pbgsp_commodity_height')
+                    ->addAttributeToSelect('pb_pbgsp_commodity_width')
+                    ->addAttributeToSelect('pb_pbgsp_commodity_length')
+                    ->addAttributeToSelect('pb_pbgsp_package_weight')
+                    ->addAttributeToSelect('pb_pbgsp_package_height')
+                    ->addAttributeToSelect('pb_pbgsp_package_width')
+                    ->addAttributeToSelect('pb_pbgsp_package_length')
                     // ->addUrlRewrite($category->getId()) //this will add the url rewrite.
                     ->addAttributeToSelect('price')
                     ->addAttributeToSelect('weight');
@@ -497,8 +501,9 @@ class Pb_Pbgsp_Model_Catalog_File {
             if(count($notificationFiles) > 0) {
                 $mail = new Zend_Mail();
                 $mail->setFrom('no-reply@pb.com','Pitney Bowes');
+                $subject = 'Catalog Export Results';
                 $mail->addTo($adminEmail)
-                    ->setSubject('Catalog Export Error')
+
                     ->setBodyText('Catalog Export Error. Please see attached files.');
                 $fileCount = 0;
                 foreach($notificationFiles as $notificationFile) {
@@ -511,7 +516,8 @@ class Pb_Pbgsp_Model_Catalog_File {
                     else if($this->_endsWith($notificationFile,'.ok')) {
                         if(Pb_Pbgsp_Model_Credentials::isCatalogSuccessNotificationEnabled()) {
                             $attachFile = true;
-                            $mail->setSubject('Catalog Export Successful');
+                            $subject = 'Catalog Export Results';
+                            //$mail->setSubject('Catalog Export Successful');
                         }
 
                     }
@@ -527,6 +533,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                     }
                 }
                 if($fileCount > 0) {
+                    $mail->setSubject($subject);
                     $mail->send();
                     Pb_Pbgsp_Model_Util::log("Email sent with error or success files.");
                 }
@@ -710,10 +717,21 @@ class Pb_Pbgsp_Model_Catalog_File {
                 Pb_Pbgsp_Model_Util::log("CD to $tmpSFTPDir");
                 $sftpDumpFile->cd($tmpSFTPDir);
                 Pb_Pbgsp_Model_Util::log("Uploading $fileName");
-                $sftpDumpFile->write($exportedFile, file_get_contents($fileName));
-                Pb_Pbgsp_Model_Util::log("Moving ".$tmpSFTPDir."/$exportedFile"." to ".$inboundDir."/$exportedFile");
-                $sftpDumpFile->mv($tmpSFTPDir."/$exportedFile",$inboundDir."/$exportedFile");
-                $uploadedFiles[] = $exportedFile;
+                $result = $sftpDumpFile->write($exportedFile, file_get_contents($fileName));
+                if($result)  {
+                    Pb_Pbgsp_Model_Util::log("Moving ".$tmpSFTPDir."/$exportedFile"." to ".$inboundDir."/$exportedFile");
+                    $result = $sftpDumpFile->mv($tmpSFTPDir."/$exportedFile",$inboundDir."/$exportedFile");
+                    if($result) {
+                        $uploadedFiles[] = $exportedFile;
+                    }
+                    else {
+                        Pb_Pbgsp_Model_Util::log("Could not move file from ".$tmpSFTPDir."/$exportedFile"." to ".$inboundDir."/$exportedFile check the paths are correct.");
+                    }
+                }
+                else {
+                    Pb_Pbgsp_Model_Util::log("Could not upload file $fileName to $tmpSFTPDir check the path.");
+                }
+
             }
             $sftpDumpFile->close();
 
@@ -727,9 +745,12 @@ class Pb_Pbgsp_Model_Catalog_File {
         Pb_Pbgsp_Model_Util::log("Pb catalog file upload ended");
 
         $this->_removeExportedFiles($exportedFiles);
-        $this->updateLastCategoryUpload();
-        $this->updateLastProductUpload();
-        $this->_logExportedFileInDB($uploadedFiles);
+        if(count($uploadedFiles) > 0) {
+            $this->updateLastCategoryUpload();
+            $this->updateLastProductUpload();
+            $this->_logExportedFileInDB($uploadedFiles);
+        }
+
     }
 
     private function _getExportedFilesVariable() {

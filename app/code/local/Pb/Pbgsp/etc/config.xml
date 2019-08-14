@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.3.1</version>
+            <version>1.3.7</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -27,6 +27,11 @@
 
                 </rewrite>
             </sales>
+            <tax>
+                <rewrite>
+                    <checkout_tax>Pb_Pbgsp_Block_Tax_Checkout_Tax</checkout_tax>
+                </rewrite>
+            </tax>
             <adminhtml>
                 <rewrite>
                     <sales_order_totals>Pb_Pbgsp_Block_Adminhtml_Sales_Order_Totals</sales_order_totals>
@@ -107,7 +112,15 @@
                     </Pb_Pbgsp_CreateParcel>
                 </observers>
             </sales_order_shipment_save_after>
-			
+            <sales_order_shipment_track_save_after>
+                <observers>
+                    <Pb_Pbgsp_CreateParcel>
+                        <type>model</type>
+                        <class>pb_pbgsp/observer</class>
+                        <method>salesOrderShipmentTrackSaveAfter</method>
+                    </Pb_Pbgsp_CreateParcel>
+                </observers>
+            </sales_order_shipment_track_save_after>
 		
             <core_block_abstract_to_html_after>
                 <observers>
@@ -213,6 +226,15 @@
            </updates>
        </layout>
    </frontend>
+   <adminhtml>
+       <layout>
+           <updates>
+               <Pb_Pbgsp>
+                   <file>pbgsp.xml</file>
+               </Pb_Pbgsp>
+           </updates>
+       </layout>
+   </adminhtml>
 
     <default>
         <carriers>
@@ -234,6 +256,7 @@
                 <suppress_domestic_tracking>1</suppress_domestic_tracking>
                 <notify_catalog_ok>0</notify_catalog_ok>
                 <notify_catalog_err>1</notify_catalog_err>
+                <generate_asn_on_add_track>0</generate_asn_on_add_track>
                 <custom_shipment_email_subject><![CDATA[{{var store.getFrontendName()}}: Shipment confirmation for Order # {{var order.increment_id}}]]>
                 </custom_shipment_email_subject>
                 <custom_shipment_email_template><![CDATA[<h1 style="font-size:22px; font-weight:normal; line-height:22px; margin:0 0 11px 0;"">Hello,  {{htmlescape var=$order.getCustomerName()}}</h1>
@@ -489,7 +512,7 @@
         </jobs>
     </crontab>
 
-    <admin>
+    <!--<admin>
         <routers>
             <pbgsp>
                 <use>admin</use>
@@ -499,7 +522,18 @@
                 </args>
             </pbgsp>
         </routers>
-    </admin>
+    </admin>-->
+    <admin>
+		<routers>
+			<adminhtml>
+				<args>
+					<modules>
+						<Pb_Pbgsp before="Mage_Adminhtml">Pb_Pbgsp_Adminhtml</Pb_Pbgsp>
+					</modules>
+				</args>
+			</adminhtml>
+		</routers>
+	</admin>
     <adminhtml>
         <events>
             <!--<sales_order_save_commit_after>-->
@@ -531,7 +565,7 @@
                         <items module="pbgsp">
                             <title>Category Settings</title>
                             <sort_order>0</sort_order>
-                            <action>pbgsp/adminhtml_categorysettings</action>
+                            <action>adminhtml/categorysettings</action>
                         </items>
                     </children>
                 </pbgsp>
