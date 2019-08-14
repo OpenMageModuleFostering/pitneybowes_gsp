@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.0)
- * Packaged:      2015-06-04T15:09:31+00:00
+ * Product:       Pb_Pbgsp (1.0.1)
+ * Packaged:      2015-09-21T15:12:31+00:00
  * Last Modified: 2015-06-04T15:00:31+00:00
+
  * File:          app/code/local/Pb/Pbgsp/Model/Observer.php
  * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -70,7 +71,7 @@ class Pb_Pbgsp_Model_Observer {
 
                     }
 
-                    $parcelResponse = Pb_Pbgsp_Model_Api::generateInboundParcelNumber($shipment,$items,$order -> getRealOrderId(),$cpOrderNumber);
+                    $parcelResponse = Pb_Pbgsp_Model_Api::generateInboundParcelNumber($shipment,$items,$order,$cpOrderNumber);
                     if(array_key_exists('errors',$parcelResponse)) {
                         Pb_Pbgsp_Model_Util::log("Error generating inbound parcel");
                         Pb_Pbgsp_Model_Util::log($parcelResponse);
@@ -155,10 +156,11 @@ class Pb_Pbgsp_Model_Observer {
             $orderNumber->setHubId($order["shipToHub"]['hubId']);
             $orderNumber->setHubStreet1($order["shipToHub"]['hubAddress']['street1']);
             $orderNumber->setHubStreet2($order["shipToHub"]['hubAddress']['street2']);
+
             $orderNumber->setHubProvinceOrState($order["shipToHub"]['hubAddress']['provinceOrState']);
             $orderNumber->setHubCountry($order["shipToHub"]['hubAddress']['country']);
             $orderNumber->setHubPostalCode($order["shipToHub"]['hubAddress']['postalOrZipCode']);
-
+            $orderNumber->setHubCity($order["shipToHub"]['hubAddress']['city']);
 			Mage::getSingleton("customer/session")->setPbOrderNumber($orderNumber);
 		} else {
             Pb_Pbgsp_Model_Util::log(" not clearpath order");
@@ -218,10 +220,13 @@ class Pb_Pbgsp_Model_Observer {
                               <span>".$cpOrderNumber->getHubStreet1()."</span><br/>
                               <strong>Hub Street 2</strong>
                               <span>".$cpOrderNumber->getHubStreet2()."</span><br/>
+
                               <strong>Postal Code</strong>
                               <span>".$cpOrderNumber->getHubPostalCode()."</span><br/>
                                <strong>Hub Province/State</strong>
                               <span>".$cpOrderNumber->getHubProvinceOrState()."</span><br/>
+                              <strong>Hub City</strong>
+                              <span>".$cpOrderNumber->getHubCity()."</span><br/>
                                <strong>Hub Country</strong>
                               <span>".$cpOrderNumber->getHubCountry()."</span><br/>
                             </fieldset>

@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -233,6 +233,8 @@
                 <catalog_encryption_enabled>0</catalog_encryption_enabled>
                 <asn_generation_enabled>1</asn_generation_enabled>
                 <suppress_domestic_tracking>1</suppress_domestic_tracking>
+                <notify_catalog_ok>0</notify_catalog_ok>
+                <notify_catalog_err>1</notify_catalog_err>
                 <custom_shipment_email_subject><![CDATA[{{var store.getFrontendName()}}: Shipment confirmation for Order # {{var order.increment_id}}]]>
                 </custom_shipment_email_subject>
                 <custom_shipment_email_template><![CDATA[<h1 style="font-size:22px; font-weight:normal; line-height:22px; margin:0 0 11px 0;"">Hello,  {{htmlescape var=$order.getCustomerName()}}</h1>

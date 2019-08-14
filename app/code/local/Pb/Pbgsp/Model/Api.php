@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.0)
- * Packaged:      2015-06-04T15:09:31+00:00
+ * Product:       Pb_Pbgsp (1.0.1)
+ * Packaged:      2015-09-21T15:12:31+00:00
  * Last Modified: 2015-06-04T15:00:31+00:00
+
  * File:          app/code/local/Pb/Pbgsp/Model/Api.php
  * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -55,6 +56,7 @@ class Pb_Pbgsp_Model_Api
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers );
         curl_setopt($curl, CURLOPT_VERBOSE, 1); // turn verbose on
         curl_setopt($curl, CURLINFO_HEADER_OUT, true);
+        //curl_setopt($curl, CURLOPT_SSL_CIPHER_LIST, 'TLSv1');
         $result = curl_exec($curl);
         $info = curl_getinfo($curl);
         //Pb_Pbgsp_Model_Util::log($info);
@@ -247,11 +249,16 @@ class Pb_Pbgsp_Model_Api
 
     }
 
-    public static function generateInboundParcelNumber($shipment,$items,$mageOrderNumber,$cpOrderNumber) {
+    public static function generateInboundParcelNumber($shipment,$items,$order,$cpOrderNumber) {
         $inboundParcelCommodities = array();
         /* @var Mage_Sales_Model_Order_Shipment  $shipment*/
+        /* @var Mage_Sales_Model_Order $order */
+        $address = $order->getShippingAddress();
         $totalWeight = 0;
         foreach($shipment->getItemsCollection() as $item) {
+            $qty =  intval($item->getQty());
+            if($qty ==0)
+                continue;
             $product = Mage::getModel('catalog/product')->loadByAttribute('sku',$item->getSku());
             $commodity = array(
                 'merchantComRefId' => $item->getSku(),
@@ -289,19 +296,19 @@ class Pb_Pbgsp_Model_Api
             ),
             'returnDetails' => array(
                 'returnAddress' => array(
-                    'street1' => '200 Main Street',
-                    'city' => 'PHOENIX',
-                    'provinceOrState' => 'AZ',
-                    'country' => 'US',
-                    'postalOrZipCode' => '85123'
+                    'street1' => Pb_Pbgsp_Model_Credentials::getReturnAddressStreet1(),
+                    'city' => Pb_Pbgsp_Model_Credentials::getReturnAddressCity(),
+                    'provinceOrState' => Pb_Pbgsp_Model_Credentials::getReturnAddressState(),
+                    'country' => Pb_Pbgsp_Model_Credentials::getReturnAddressCountry(),
+                    'postalOrZipCode' => Pb_Pbgsp_Model_Credentials::getReturnAddressZip()
                 ),
                 'contactInformation' => array(
-                    'familyName' => 'Smith',
-                    'givenName' => 'Mary',
-                    'email' => 'retailer_email@test.com',
+                    'familyName' => $address->getLastname(),
+                    'givenName' => $address->getFirstname(),
+                    'email' => $address->getEmail(),
                     'phoneNumbers' => array(
                         array(
-                            'number' => '12123232',
+                            'number' => $address->getTelephone(),
                             'type' => 'home'
                         )
                     )

@@ -2,8 +2,8 @@
 
 /**
  * Product:       Pb_Pbgsp (1.0.0)
- * Packaged:      2015-06-04T15:09:31+00:00
- * Last Modified: 2015-06-04T15:00:31+00:00
+ * Packaged:      2015-05-06T18:09:31+00:00
+ * Last Modified: 2015-05-06T18:09:31+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/File.php
  * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -204,8 +204,8 @@ class Pb_Pbgsp_Model_Catalog_File {
                     ->addAttributeToSelect('product_url')
                     ->addAttributeToSelect('type_id')
                     ->addAttributeToSelect('pb_pbgsp_upload')
-                   // ->addUrlRewrite($category->getId()) //this will add the url rewrite.
-                   ->addAttributeToSelect('price')
+                    // ->addUrlRewrite($category->getId()) //this will add the url rewrite.
+                    ->addAttributeToSelect('price')
                     ->addAttributeToSelect('weight');
 
                 $baseURL = Mage::app()->getStore($category->getStoreId())->getBaseUrl();
@@ -292,7 +292,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                 }
             }
         }
-       // Pb_Pbgsp_Model_Util::log($names);
+        // Pb_Pbgsp_Model_Util::log($names);
         return implode('|',$names);
     }
 
@@ -383,43 +383,56 @@ class Pb_Pbgsp_Model_Catalog_File {
     public function processStatusNotifications() {
         try {
 
-        $adminEmail = Pb_Pbgsp_Model_Credentials::getAdminEmail();
+            $adminEmail = Pb_Pbgsp_Model_Credentials::getAdminEmail();
             if(!isset($adminEmail) || $adminEmail=='')
                 return;
-        $notificationDir = $this->_getNotificationDir();
-        $this->_downloadStatusNotifications($notificationDir);
-        $notificationFiles = array_diff(scandir($notificationDir), array('..', '.'));
-        if(count($notificationFiles) > 0) {
-            $mail = new Zend_Mail();
-            $mail->setFrom('no-reply@pb.com','Pitney Bowes');
-            $mail->addTo($adminEmail)
-                ->setSubject('Catalog Export Error')
-                ->setBodyText('Catalog Export Error. Please see attached files.');
-            $fileCount = 0;
-            foreach($notificationFiles as $notificationFile) {
-                if($this->_endsWith($notificationFile,'.err') || $this->_endsWith($notificationFile,'.log') ) {
-                    $file = $notificationDir.'/'. $notificationFile;
-                    $at = new Zend_Mime_Part(file_get_contents($file));
-                    $at->filename = basename($file);
-                    $at->disposition = Zend_Mime::DISPOSITION_ATTACHMENT;
-                    $at->encoding = Zend_Mime::ENCODING_8BIT;
 
-                    $mail->addAttachment($at);
-                    $fileCount++;
+            $notificationDir = $this->_getNotificationDir();
+            $this->_downloadStatusNotifications($notificationDir);
+            $notificationFiles = array_diff(scandir($notificationDir), array('..', '.'));
+            if(count($notificationFiles) > 0) {
+                $mail = new Zend_Mail();
+                $mail->setFrom('no-reply@pb.com','Pitney Bowes');
+                $mail->addTo($adminEmail)
+                    ->setSubject('Catalog Export Error')
+                    ->setBodyText('Catalog Export Error. Please see attached files.');
+                $fileCount = 0;
+                foreach($notificationFiles as $notificationFile) {
+                    $attachFile = false;
+                    if($this->_endsWith($notificationFile,'.err') || $this->_endsWith($notificationFile,'.log') ) {
+                        if(Pb_Pbgsp_Model_Credentials::isCatalogErrorNotificationEnabled())
+                            $attachFile = true;
+
+                    }
+                    else if($this->_endsWith($notificationFile,'.ok')) {
+                        if(Pb_Pbgsp_Model_Credentials::isCatalogSuccessNotificationEnabled()) {
+                            $attachFile = true;
+                            $mail->setSubject('Catalog Export Successful');
+                        }
+
+                    }
+                    if($attachFile) {
+                        $file = $notificationDir.'/'. $notificationFile;
+                        $at = new Zend_Mime_Part(file_get_contents($file));
+                        $at->filename = basename($file);
+                        $at->disposition = Zend_Mime::DISPOSITION_ATTACHMENT;
+                        $at->encoding = Zend_Mime::ENCODING_8BIT;
+
+                        $mail->addAttachment($at);
+                        $fileCount++;
+                    }
+                }
+                if($fileCount > 0) {
+                    $mail->send();
+                    Pb_Pbgsp_Model_Util::log("Email sent with error or success files.");
                 }
 
+                else {
+                    Pb_Pbgsp_Model_Util::log(" No error files found.");
+                }
+                //keep these files until next upload and delete files from old upload
+                $this->_cleanNotificationFiles();
             }
-            if($fileCount > 0) {
-                $mail->send();
-                Pb_Pbgsp_Model_Util::log("Email sent with error files.");
-            }
-
-            else {
-                Pb_Pbgsp_Model_Util::log(" No error files found.");
-            }
-            //keep these files until next upload and delete files from old upload
-            $this->_cleanNotificationFiles();
-        }
         }
         catch (Exception $e) {
             Pb_Pbgsp_Model_Util::log("Error in processStatusNotifications:". $e->getMessage());
@@ -543,6 +556,7 @@ class Pb_Pbgsp_Model_Catalog_File {
         $exportedFiles = array_diff(scandir($tmpDir), array('..', '.'));
         if (count($this->productIds) == 0) {
             // No new products to send, don't send anything.
+            Pb_Pbgsp_Model_Util::log("No new products to send, don't send anything.");
             $this->_removeExportedFiles($exportedFiles);
 
             return;
@@ -557,7 +571,7 @@ class Pb_Pbgsp_Model_Catalog_File {
             else {
                 Pb_Pbgsp_Model_Util::log('Encryption is not enabled.'.Pb_Pbgsp_Model_Credentials::isEncryptionEnabled());
             }
-        $sftpDumpFile = new Varien_Io_Sftp();
+            $sftpDumpFile = new Varien_Io_Sftp();
             $credentials = $this->_getSftpCredentials();
 
             Pb_Pbgsp_Model_Util::log($credentials);
@@ -572,19 +586,19 @@ class Pb_Pbgsp_Model_Catalog_File {
             $tmpSFTPDir = $rootDir.'tmp';
             $inboundDir = $rootDir.'inbound';
             $uploadedFiles = array();
-        foreach($exportedFiles as $exportedFile) {
-            $fileName = $tmpDir . $exportedFile;
-            if(is_dir($fileName))
-                continue;
+            foreach($exportedFiles as $exportedFile) {
+                $fileName = $tmpDir . $exportedFile;
+                if(is_dir($fileName))
+                    continue;
 
-            Pb_Pbgsp_Model_Util::log("CD to $tmpSFTPDir");
-            $sftpDumpFile->cd($tmpSFTPDir);
-            Pb_Pbgsp_Model_Util::log("Uploading $fileName");
-            $sftpDumpFile->write($exportedFile, file_get_contents($fileName));
-            Pb_Pbgsp_Model_Util::log("Moving ".$tmpSFTPDir."/$exportedFile"." to ".$inboundDir."/$exportedFile");
-            $sftpDumpFile->mv($tmpSFTPDir."/$exportedFile",$inboundDir."/$exportedFile");
-            $uploadedFiles[] = $exportedFile;
-        }
+                Pb_Pbgsp_Model_Util::log("CD to $tmpSFTPDir");
+                $sftpDumpFile->cd($tmpSFTPDir);
+                Pb_Pbgsp_Model_Util::log("Uploading $fileName");
+                $sftpDumpFile->write($exportedFile, file_get_contents($fileName));
+                Pb_Pbgsp_Model_Util::log("Moving ".$tmpSFTPDir."/$exportedFile"." to ".$inboundDir."/$exportedFile");
+                $sftpDumpFile->mv($tmpSFTPDir."/$exportedFile",$inboundDir."/$exportedFile");
+                $uploadedFiles[] = $exportedFile;
+            }
             $sftpDumpFile->close();
 
         } catch (Exception $e) {
@@ -616,7 +630,7 @@ class Pb_Pbgsp_Model_Catalog_File {
     }
     private function _getLastExportedFileNames() {
         $exportedFilesVariable = $this->_getExportedFilesVariable();
-        if(!isset($exportedFilesVariable) && $exportedFilesVariable->getValue() != '')
+        if(!isset($exportedFilesVariable) || $exportedFilesVariable->getValue() != '')
             return false;
         $exportedFiles = explode('|',$exportedFilesVariable->getValue());
         return $exportedFiles;
@@ -667,7 +681,7 @@ class Pb_Pbgsp_Model_Catalog_File {
     {
         if ($product->shouldUpload($this->lastDiff)) {
             array_push($this->productIds,$product->getMageProduct()->getId());
-           // Pb_Pbgsp_Model_Util::log("Product SKU:" . $product->getSKU());
+            // Pb_Pbgsp_Model_Util::log("Product SKU:" . $product->getSKU());
             $product->writeToFile($this->file,$categoryCode,$parentSku,$category);
             fflush($this->file);
         }

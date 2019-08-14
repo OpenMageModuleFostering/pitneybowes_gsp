@@ -1,8 +1,9 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.0.0)
- * Packaged:      2015-06-04T15:09:31+00:00
+ * Product:       Pb_Pbgsp (1.0.1)
+ * Packaged:      2015-09-21T15:12:31+00:00
  * Last Modified: 2015-06-04T15:00:31+00:00
+
  * File:          app/code/local/Pb/Pbgsp/Model/Credentials.php
  * Copyright:     Copyright (c) 2015 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -50,6 +51,12 @@ class Pb_Pbgsp_Model_Credentials {
     }
     public static function isFreeTaxEnabled() {
         return Mage::getStoreConfig('carriers/pbgsp/free_tax_enable');
+    }
+    public static function isCatalogSuccessNotificationEnabled() {
+        return Mage::getStoreConfig('carriers/pbgsp/notify_catalog_ok');
+    }
+    public static function isCatalogErrorNotificationEnabled() {
+        return Mage::getStoreConfig('carriers/pbgsp/notify_catalog_err');
     }
     public static function getHandlingFee() {
 
@@ -123,6 +130,22 @@ class Pb_Pbgsp_Model_Credentials {
 
     public static function getPBID() {
         return "16061";
+    }
+
+    public static function getReturnAddressStreet1() {
+        return Mage::getStoreConfig('carriers/pbgsp/return_address_street1');
+    }
+    public static function getReturnAddressCity() {
+        return Mage::getStoreConfig('carriers/pbgsp/return_address_city');
+    }
+    public static function getReturnAddressState() {
+        return Mage::getStoreConfig('carriers/pbgsp/return_address_state');
+    }
+    public static function getReturnAddressCountry() {
+        return Mage::getStoreConfig('carriers/pbgsp/return_address_country');
+    }
+    public static function getReturnAddressZip() {
+        return Mage::getStoreConfig('carriers/pbgsp/return_address_zip');
     }
 }
 ?>

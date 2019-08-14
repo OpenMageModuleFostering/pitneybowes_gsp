@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php
 /**
  * Product:       Pb_Pbgsp (1.0.0)
