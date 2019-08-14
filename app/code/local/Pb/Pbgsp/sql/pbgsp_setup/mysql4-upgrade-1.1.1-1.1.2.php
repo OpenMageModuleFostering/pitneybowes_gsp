@@ -1,7 +1,7 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.1.2)
- * Packaged:      2015-09-23T12:09:53+00:00
+ * Product:       Pb_Pbgsp (1.2.0)
+ * Packaged:      2015-10-01T12:11:15+00:00
  * Last Modified: 2015-09-14T12:11:20+00:00
 
 
@@ -20,9 +20,9 @@
 
 				Alter TABLE {$this->getTable('pb_pbgsp/inboundparcel')} add `mage_order_shipment_number` varchar(50) null;
 
-
-
-					");
+				
+				Alter TABLE {$this->getTable('pb_pbgsp/ordernumber')} add `original_shipping_address` varchar(150) null;
+				");
 
 	$installer->endSetup();
 ?>

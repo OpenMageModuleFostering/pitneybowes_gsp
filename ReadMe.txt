@@ -32,6 +32,15 @@ In order to take advantage of the file encryption setting in the extension confi
 CHANGELOG
 ========================================================
 
+v. 1.2.0
+
+Add config option to override domestic shipping address with PB HUB address. When active the PB domestic HUB address will overwrite the customer shipping address for the order. The customer shipping address is stored with PB and also added to the order details for record keeping.
+
+move the product weight value into the COMMODITY_WEIGHT column on the CSV catalog exports.
+
+add logic to separate free shipping and tax. Now each work independently of one another where before enabling free shipping also made tax 0.00
+
+
 v. 1.1.2
 
 Integrated validation for title field in configuration page to resolve PHP 5.3 will warning when there is an empty string

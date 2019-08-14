@@ -1,7 +1,7 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.1.2)
- * Packaged:      2015-09-23T12:09:53+00:00
+ * Product:       Pb_Pbgsp (1.2.0)
+ * Packaged:      2015-10-01T12:11:15+00:00
  * Last Modified: 2015-09-14T12:11:20+00:00
 
 
@@ -122,6 +122,7 @@ class Pb_Pbgsp_Model_Catalog_Product {
     public function writeToFile($file,$categoryCode,$parentSku,$category) {
         /** $categoryCode is passed in method because we don't have categoryCode for child products. BigPixel 6/11/2012 */
         $name = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getName());
+		$shortDescription ='';
         $name = preg_replace("/[^A-Za-z0-9 ,.\-\+=;:\\(){}\[\]@?%$#]/", '', $name);
         $string = "<Commodity>\n";
         $string .= "<CategoryCode><![CDATA[" . htmlentities($categoryCode) . "]]></CategoryCode>\n";
@@ -129,14 +130,14 @@ class Pb_Pbgsp_Model_Catalog_Product {
         $string .= "<Name><![CDATA[" . htmlentities($name) . "]]></Name>\n";
         $string .= "<CountryOfOrigin><![CDATA[" . htmlentities(preg_replace("/[^A-Za-z0-9]/",'',$this -> getCountryOfOrigin())) . "]]></CountryOfOrigin>\n"; //added by kamran,1/14/2012
         $description = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getDescription());
-        $description = preg_replace("/[^A-Za-z0-9 ,.\-\+=;:\\(){}\[\]@?%$#]/", '', $description);
+        $description = preg_replace("/[^A-Za-z0-9 .\-\+=;:\\(){}\[\]@?%$#]/", '', $description);
         if (strlen($description) >= 2000) {
 
             $description = $this -> chopString($description, 1999);
         }
 
-        $shortDescription = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getShortDescription());
-        $shortDescription = preg_replace("/[^A-Za-z0-9 ,.\-\+=;:\\(){}\[\]@?%$#]/", '', $shortDescription);
+   $shortDescription = Pb_Pbgsp_Model_Catalog_File::stripHtml($this -> getShortDescription());
+   $shortDescription = preg_replace("/[^A-Za-z0-9 .\-\+=;:\\(){}\[\]@?%$#]/",'',$shortDescription);
         if (strlen($shortDescription) >= 2000) {
 
             $shortDescription = $this -> chopString($shortDescription, 1999);
@@ -159,15 +160,19 @@ class Pb_Pbgsp_Model_Catalog_Product {
 //            'RH_CATEGORY_ID_PATH','RH_CATEGORY_NAME_PATH','RH_CATEGORY_URL_PATH','GPC','COMMODITY_WEIGHT',
 //            'HS_CODE','CURRENCY'));
         $merchantCode = Pb_Pbgsp_Model_Credentials::getMerchantCode();
-        fputcsv($file,array($this -> getSKU(),$name,$shortDescription,
-            $description,$merchantCode,$this -> getURL(),$merchantCode,'',
-            $categoryCode,$this->getPrice(),'lb','',$this->getCountryOfOrigin(),'','',
+		if($this -> getWeight() == 0)
+		{
+			$weight = '';
+		}else{
+			$weight = $this -> getWeight();
+		}
+        fputcsv($file,array($this -> getSKU(),$name,$shortDescription,$description,$merchantCode,$this -> getURL(),$merchantCode,'',$categoryCode,$this->getPrice(),'lb','',$this->getCountryOfOrigin(),'','',
             '','','','','','','','','',
             '','','','',
-            '','',$this -> getWeight(),'','',
-            '','','','','','',
             '','','','','',
-           strval($category->getData('id_path')),$category->getData('name_path')
+            '','','','','','',
+            '','','','',
+           strval($category->getData('id_path')),$category->getData('name_path'),$weight
         //,'','','','',$category->getData('store')->getCurrentCurrencyCode()
         ));
         //fwrite($file, $string);

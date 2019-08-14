@@ -1,7 +1,7 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.1.2)
- * Packaged:      2015-09-23T12:09:53+00:00
+ * Product:       Pb_Pbgsp (1.2.0)
+ * Packaged:      2015-10-01T12:11:15+00:00
  * Last Modified: 2015-09-14T12:11:20+00:00
 
 
@@ -51,6 +51,9 @@ class Pb_Pbgsp_Model_Credentials {
     }
     public static function isASNGenerationEnabled() {
         return Mage::getStoreConfig('carriers/pbgsp/asn_generation_enabled');
+    }
+	public static function isOverrideShippingAddressEnabled() {
+        return Mage::getStoreConfig('carriers/pbgsp/override_shipping_address_enabled');
     }
     public static function isFreeTaxEnabled() {
         return Mage::getStoreConfig('carriers/pbgsp/free_tax_enable');

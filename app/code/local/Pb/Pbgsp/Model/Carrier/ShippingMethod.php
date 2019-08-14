@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.1.2)
- * Packaged:      2015-09-23T12:09:53+00:00
+ * Product:       Pb_Pbgsp (1.2.0)
+ * Packaged:      2015-10-01T12:11:15+00:00
  * Last Modified: 2015-09-14T12:11:20+00:00
 
 
@@ -266,7 +266,7 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
                       $method = $this->_getCheapestShipMethod($quoteSet,$items);
                       $method->setCost(0);
                       $method->setPrice(0);
-                      $method->setTax(0);
+                      //$method->setTax(0); //tax should be included in free shipping
                       $result->append($method);
                       array_push($shipMethods,$method);
                       break;

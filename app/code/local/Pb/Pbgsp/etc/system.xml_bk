@@ -210,7 +210,8 @@
                            <show_in_default>1</show_in_default>
                            <show_in_website>1</show_in_website>
                            <show_in_store>1</show_in_store>
-                        </override_shipping_address_enabled>
+                       </override_shipping_address_enabled>
+
                         <!--
                         If the free_shipping_enable flag enable, the system will check free_shipping_subtotal to give free shipping
                         otherwise will use shopping cart price rule behaviour

@@ -1,9 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.1.2)
- * Packaged:      2015-09-23T12:09:53+00:00
+ * Product:       Pb_Pbgsp (1.2.0)
+ * Packaged:      2015-10-01T12:11:15+00:00
  * Last Modified: 2015-09-14T12:11:20+00:00
-
 
 
  * File:          app/code/local/Pb/Pbgsp/Model/Observer.php
@@ -137,6 +136,30 @@ class Pb_Pbgsp_Model_Observer {
 				$orderNumber->setConfirmed(true);
                 $orderNumber->setReferenced(true);
 				$orderNumber->save();
+				
+				/* Update order shipping address in Magento 
+				   Added by: Sudarshan
+				   Date: 25/09/2015
+				
+				*/
+				if(Pb_Pbgsp_Model_Credentials::isOverrideShippingAddressEnabled() == '1') {	
+					try{
+						$shippingAddress = Mage::getModel('sales/order_address')->load($order->getShippingAddress()->getId());
+						
+						$shippingAddress
+						->setStreet(array($orderNumber->getHubStreet1(),$orderNumber->getHubStreet2()))
+						->setCity($orderNumber->getHubCity())
+						->setCountry_id($orderNumber->getHubCountry())
+						->setRegion($orderNumber->getHubProvinceOrState())
+						->setPostcode($orderNumber->getHubPostalCode())->save();
+					}
+					catch(Exception $e) {
+						Pb_Pbgsp_Model_Util::log("Error updating shipping address in magento");
+						Pb_Pbgsp_Model_Util::logException($e);
+					}
+					
+				}
+				
                 Pb_Pbgsp_Model_Util::log(" $mageOrderNumber order is confirmed in PB");
 			}
 //			if (Pb_Pbgsp_Model_Api::setOrderReference($cpOrderNumber,$mageOrderNumber)) {
@@ -183,6 +206,7 @@ class Pb_Pbgsp_Model_Observer {
         //Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.saveShippingMethod');
 		//TODO: If anything fails here I need to fail the checkout process.
 		$address = $observer->getQuote()->getShippingAddress();
+		$domesticShippingAdress = $address->getName()."</br>".$address->getStreetFull().", ".$address->getCity()."</br> ".$address->getRegion().", ".$address->getCountry().",".$address->getPostcode()."</br> T:".$address->getTelephone();
 		if ($this->isPbOrder($address)) {
             Pb_Pbgsp_Model_Util::log(" PB order");
 			$items = Mage::getSingleton('checkout/cart')->getItems(); 
@@ -215,6 +239,7 @@ class Pb_Pbgsp_Model_Observer {
             $orderNumber->setHubCountry($order["shipToHub"]['hubAddress']['country']);
             $orderNumber->setHubPostalCode($order["shipToHub"]['hubAddress']['postalOrZipCode']);
             $orderNumber->setHubCity($order["shipToHub"]['hubAddress']['city']);
+			$orderNumber->setOriginalShippingAddress($domesticShippingAdress);
 			Mage::getSingleton("customer/session")->setPbOrderNumber($orderNumber);
 		} else {
             Pb_Pbgsp_Model_Util::log(" not clearpath order");
@@ -282,8 +307,10 @@ class Pb_Pbgsp_Model_Observer {
                               <span>".$cpOrderNumber->getHubProvinceOrState()."</span><br/>
                               <strong>Hub City</strong>
                               <span>".$cpOrderNumber->getHubCity()."</span><br/>
-                               <strong>Hub Country</strong>
+                              <strong>Hub Country</strong>
                               <span>".$cpOrderNumber->getHubCountry()."</span><br/>
+							  <strong>Original Shiiping Address</strong>
+                              <span>".$cpOrderNumber->getOriginalShippingAddress()."</span><br/>
                             </fieldset>
                         </div>";
                     $transport['html'] = $transport['html'] . $html;
@@ -301,9 +328,7 @@ class Pb_Pbgsp_Model_Observer {
                 $staging = 0;
                 if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox'))
                     $staging = 1;
-
 				
-
 				
                 $transport['html'] = "<a href='http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging'>Track your order</a>";
             }
@@ -336,7 +361,6 @@ class Pb_Pbgsp_Model_Observer {
                 $staging = 0;
                 if(strpos(Pb_Pbgsp_Model_Credentials::getCheckoutUrl(),'cpsandbox'))
                     $staging = 1;
-
 				
                 $script = "<script lang='javascript'>
                                 window.location = 'http://tracking.ecommerce.pb.com/track/$cpord?staging=$staging';

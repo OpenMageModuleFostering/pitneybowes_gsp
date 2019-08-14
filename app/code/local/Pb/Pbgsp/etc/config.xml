@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.1.2</version>
+            <version>1.2.0</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -245,11 +245,16 @@
         </p>
         <p style="font-size:12px; line-height:16px; margin:0;">
             Your shipping confirmation is below. Thank you again for your business.
-        </p>
+        </p></br>
 
-        <h2 style="font-size:18px; font-weight:normal; margin:0;">Your Order #{{var order.increment_id}} has been shipped from local warehouse to international shipment hub from where it will be shipped to your country.</h2>
+     <h4 style="font-size:18px; font-weight:normal; margin:0;">Your Order #{{var order.increment_id}} is being shipped via Pitney Bowes to the following address
+</h4> 
+<p>
+{{var order.getShippingAddress().format('html')}} </p>
 
-                    ]]>
+		<b><i>Note: The above shipping address is not the final shipping address but it is the distribution hub address that the parcel will be sent out internationally</i></b>
+    
+                                 ]]>
                 </custom_shipment_email_template>
                 <separate_log_file>0</separate_log_file>
 
