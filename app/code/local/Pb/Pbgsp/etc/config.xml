@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Pb_Pbgsp>
-            <version>1.4.2</version>
+            <version>1.4.3</version>
         </Pb_Pbgsp>
     </modules>
     <global>
@@ -97,15 +97,15 @@
             </pb_pbgsp_read>
         </resources>
         <events>
-            <!--<checkout_submit_all_after>&lt;!&ndash; added by Kamran 7/2/2014 &ndash;&gt;-->
-                <!--<observers>-->
-                    <!--<Pb_Pbgsp_Model_CheckoutSubmitAllAfter>-->
-                        <!--<type>model</type>-->
-                        <!--<class>pb_pbgsp/observer</class>-->
-                        <!--<method>createOrderAdminAfter</method>-->
-                    <!--</Pb_Pbgsp_Model_CheckoutSubmitAllAfter>-->
-                <!--</observers>-->
-            <!--</checkout_submit_all_after>-->
+            <checkout_submit_all_after><!-- added by Kamran 11/24/2016 -->
+                <observers>
+                    <Pb_Pbgsp_Model_CheckoutSubmitAllAfter>
+                        <type>model</type>
+                        <class>pb_pbgsp/observer</class>
+                        <method>createOrderAdminAfter</method>
+                    </Pb_Pbgsp_Model_CheckoutSubmitAllAfter>
+                </observers>
+            </checkout_submit_all_after>
 			<sales_order_shipment_save_after>
                 <observers>
                     <Pb_Pbgsp_CreateParcel>
@@ -215,14 +215,14 @@
             </shipping>
         </helpers>
     </global>
-    <resources>
-        <sales_setup>
-            <setup>
-                <module>Pb_Pbgsp</module>
-                <class>Pb_Pbgsp_Model_Entity_Setup</class>
-            </setup>
-        </sales_setup>
-    </resources>
+    <!--<resources>-->
+        <!--<sales_setup>-->
+            <!--<setup>-->
+                <!--<module>Pb_Pbgsp</module>-->
+                <!--<class>Pb_Pbgsp_Model_Entity_Setup</class>-->
+            <!--</setup>-->
+        <!--</sales_setup>-->
+    <!--</resources>-->
 
    <frontend>
        <layout>

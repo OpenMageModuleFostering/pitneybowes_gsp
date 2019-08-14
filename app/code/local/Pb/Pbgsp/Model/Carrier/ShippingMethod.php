@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.2)
- * Packaged:      2016-09-21T11:45:00+00:00
- * Last Modified: 2016-09-13T10:50:00+00:00
+ * Product:       Pb_Pbgsp (1.4.3)
+ * Packaged:      2016-12-06T09:30:00+00:00
+ * Last Modified: 2016-09-21T11:45:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Carrier/ShippingMethod.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -38,9 +38,12 @@ class Pb_Pbgsp_Model_Carrier_ShippingMethod extends Mage_Shipping_Model_Carrier_
                         if(array_key_exists('message',$error))
                             $message = $error['message'];
                         $message = $processor->getDisplayMessage($error["error"],$message);//.$sku;
-                        $sku = $quoteLine['merchantComRefId'];
-                        $product = Mage::getModel('catalog/product')->loadByAttribute('sku',$sku);
-                        $message = $message . " Please remove ". $product->getName() . " from cart.";
+                        if(array_key_exists('merchantComRefId',$quoteLine)) {
+                            $sku = $quoteLine['merchantComRefId'];
+                            $product = Mage::getModel('catalog/product')->loadByAttribute('sku',$sku);
+                            $message = $message . " Please remove ". $product->getName() . " from cart.";
+                        }
+
                         $this->_addError($result,$message);
                         $isUnitErrorAdded = true;
                     }

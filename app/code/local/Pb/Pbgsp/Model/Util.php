@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.2)
- * Packaged:      2016-09-21T11:45:00+00:00
- * Last Modified: 2016-09-13T10:50:00+00:00
+ * Product:       Pb_Pbgsp (1.4.3)
+ * Packaged:      2016-12-06T09:30:00+00:00
+ * Last Modified: 2016-09-21T11:45:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Util.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -107,6 +107,11 @@ class Pb_Pbgsp_Model_Util  {
         }
 
         return false;
+    }
+
+    public static function endsWith($haystack, $needle) {
+        // search forward starting from end minus needle length characters
+        return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
     }
 }
 

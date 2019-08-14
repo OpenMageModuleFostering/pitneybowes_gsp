@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Product:       Pb_Pbgsp (1.4.2)
- * Packaged:      2016-09-21T11:45:00+00:00
- * Last Modified: 2016-09-13T10:50:00+00:00
+ * Product:       Pb_Pbgsp (1.4.3)
+ * Packaged:      2016-12-06T09:30:00+00:00
+ * Last Modified: 2016-09-21T11:45:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/File.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -26,13 +26,8 @@ class Pb_Pbgsp_Model_Catalog_File {
     }
 
     private function _getTempDir() {
-        $appRoot = Mage::getRoot();
-        $mageRoot = dirname($appRoot);
-        $configOptions = Mage::getModel('core/config_options');
-        $tmpDir = $mageRoot . '/var/pbgsp/tmp/';
-        $configOptions->createDirIfNotExists( $tmpDir);
-        chmod($tmpDir, 0777);
-        return $tmpDir;
+
+        return Pb_Pbgsp_Model_Util::getTempDir();
     }
 
 
@@ -229,6 +224,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                     ->addAttributeToSelect('pb_pbgsp_package_height')
                     ->addAttributeToSelect('pb_pbgsp_package_width')
                     ->addAttributeToSelect('pb_pbgsp_package_length')
+                    ->addAttributeToSelect('status')
                     // ->addUrlRewrite($category->getId()) //this will add the url rewrite.
                     ->addAttributeToSelect('price')
                     ->addAttributeToSelect('weight');
@@ -237,7 +233,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                 $productUrlFormat = $baseURL ."catalog/product/view/id/%d/";
                 foreach($productCollection as $product) {
                     /* @var $product Mage_Catalog_Model_Product */
-                    if($product->getTypeId() == 'virtual')
+                    if($product->getTypeId() == 'virtual' || $product->getStatus() == 2)
                         continue;
                     $cateIds = $product->getCategoryIds();
                     $cateId = 0;
@@ -257,11 +253,38 @@ class Pb_Pbgsp_Model_Catalog_File {
                     $prodCat->setData('name_path',$this->_getCatNamePath($addedCategories,$cIds));
                     if($product->getTypeId() == 'configurable'  ) {
                         $productType = $product->getTypeInstance(true);
-                        $allowedProducts = $productType->getUsedProducts(null, $product);
+                        //$allowedProducts = $productType->getUsedProducts(null, $product);
+                        $ids=Mage::getResourceSingleton('catalog/product_type_configurable')
+                            ->getChildrenIds($product->getId());
                         /** @var $childProduct Mage_Catalog_Model_Product */
-
+                        $allowedProducts = Mage::getModel('catalog/product')->getCollection()
+                            ->addIdFilter ($ids)
+                            ->addAttributeToSelect('name')
+                            ->addAttributeToSelect('sku')
+                            ->addAttributeToSelect('country_of_manufacture')
+                            ->addAttributeToSelect('description')
+                            ->addAttributeToSelect('product_url')
+                            ->addAttributeToSelect('type_id')
+                            ->addAttributeToSelect('url_in_store')
+                            ->addAttributeToSelect('pb_pbgsp_upload')
+                            ->addAttributeToSelect('updated_at')
+                            ->addAttributeToSelect('pb_pbgsp_product_condition')
+                            ->addAttributeToSelect('pb_pbgsp_upload_delete')
+                            ->addAttributeToSelect('pb_pbgsp_upload_deleted_on')
+                            ->addAttributeToSelect('pb_pbgsp_commodity_height')
+                            ->addAttributeToSelect('pb_pbgsp_commodity_width')
+                            ->addAttributeToSelect('pb_pbgsp_commodity_length')
+                            ->addAttributeToSelect('pb_pbgsp_package_weight')
+                            ->addAttributeToSelect('pb_pbgsp_package_height')
+                            ->addAttributeToSelect('pb_pbgsp_package_width')
+                            ->addAttributeToSelect('pb_pbgsp_package_length')
+                            ->addAttributeToSelect('status')
+                            // ->addUrlRewrite($category->getId()) //this will add the url rewrite.
+                            ->addAttributeToSelect('price')
+                            ->addAttributeToSelect('weight');
+                            //->addAttributeToSelect('color')-> groupByAttribute('color');
                         foreach($allowedProducts as $childProduct) {
-                            if(!$childProduct->getPbPbgspUploadDelete()) {
+                            if(!$childProduct->getPbPbgspUploadDelete() && $childProduct->getStatus() != 2) {
                                 if(!array_key_exists($childProduct->getSku(),$addedProducts)) {
                                     if( $fileRecordCount > $maxRecordsCount)
                                     {
@@ -269,7 +292,7 @@ class Pb_Pbgsp_Model_Catalog_File {
                                         $fileRecordCount=0;
                                         $part++;
                                     }
-                                    $pbChildProduct = new Pb_Pbgsp_Model_Catalog_Product($childProduct->getId(),$product->getUrlInStore());
+                                    $pbChildProduct = new Pb_Pbgsp_Model_Catalog_Product($childProduct,$product->getUrlInStore());
                                     $this->writeProduct($pbChildProduct,$cateId,$product->getSku(),$prodCat);
                                     $addedProducts[$childProduct->getSku()] = "added";
                                     $prodCount++;
@@ -876,14 +899,7 @@ class Pb_Pbgsp_Model_Catalog_File {
      */
     private function _getSftpCredentials()
     {
-        $credentials = array(
-            'host' => Pb_Pbgsp_Model_Credentials::getSftpHostname(),
-            "port" => Pb_Pbgsp_Model_Credentials::getSftpPort(),
-            'username' => Pb_Pbgsp_Model_Credentials::getSftpUsername(),
-            'password' => Pb_Pbgsp_Model_Credentials::getSftpPassword(),
-            'timeout' => '10'
-        );
-        return $credentials;
+       return Pb_Pbgsp_Model_Util::getSftpCredentials();
     }
 
     /**

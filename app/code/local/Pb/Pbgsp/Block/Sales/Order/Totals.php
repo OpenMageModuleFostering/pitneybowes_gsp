@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.2)
- * Packaged:      2016-09-21T11:45:00+00:00
- * Last Modified: 2016-09-13T10:50:00+00:00
+ * Product:       Pb_Pbgsp (1.4.3)
+ * Packaged:      2016-12-06T09:30:00+00:00
+ * Last Modified: 2016-09-21T11:45:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Block/Sales/Order/Totals.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -31,8 +31,9 @@ class Pb_Pbgsp_Block_Sales_Order_Totals extends Mage_Sales_Block_Order_Totals {
 		
 		$shipMethod = $this->getOrder()->getShippingMethod();
 		$taxAmount = $this->getOrder()->getTaxAmount();
+		$taxBaseAmount = $this->getOrder()->getBaseTaxAmount();
 			Pb_Pbgsp_Model_Util::log("Add Duty & Taxes at Order");
-		$total = self::addDuties($total,$after,$shipMethod,$taxAmount);
+		$total = self::addDuties($total,$after,$shipMethod,$taxAmount,$taxBaseAmount);
 		return parent::addTotal($total,$after);
 
 	}
@@ -46,7 +47,7 @@ class Pb_Pbgsp_Block_Sales_Order_Totals extends Mage_Sales_Block_Order_Totals {
             if(array_key_exists("shipping",$totals)) {
                 $shipping = $totals['shipping'];
                 $shipping->setLabel('Transportation Charges');
-        }
+        	}
         }
 
         return $totals;

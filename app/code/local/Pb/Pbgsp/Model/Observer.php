@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.2)
- * Packaged:      2016-09-21T11:45:00+00:00
- * Last Modified: 2016-09-13T10:50:00+00:00
+ * Product:       Pb_Pbgsp (1.4.3)
+ * Packaged:      2016-12-06T09:30:00+00:00
+ * Last Modified: 2016-09-21T11:45:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Observer.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -262,7 +262,7 @@ class Pb_Pbgsp_Model_Observer {
 	public function saveShippingMethod($observer) {
         Pb_Pbgsp_Model_Util::log('Pb_Pbgsp_Model_Observer.saveShippingMethod');
 
-		//TODO: If anything fails here I need to fail the checkout process.
+
 		$address = $observer->getQuote()->getShippingAddress();
         Pb_Pbgsp_Model_Util::log($address->getShippingMethod());
         Pb_Pbgsp_Model_Util::log($this->getShipMethod($observer));
@@ -280,28 +280,7 @@ class Pb_Pbgsp_Model_Observer {
 
             if(Pb_Pbgsp_Model_Credentials::isFreeTaxEnabled())
                 $tax = 0;
-            else {
-                //set the tax for each item in quote
-//                foreach($address->getAllItems() as $item) {
-//                    /* @var Mage_Sales_Model_Quote_Item $item */
-//                    foreach($order['order']['quoteLines'] as $quoteLine) {
-//                        $sku = $quoteLine['merchantComRefId'];
-//                        if($item->getSku() == $sku) {
-//                            $itemBaseTax = $quoteLine['unitImportation']['total']['value'];
-//                            $item->setBaseTaxAmount(floatval($itemBaseTax));
-//                            $itemTax = $itemBaseTax;
-//                            if(Mage::app()->getStore()->getCurrentCurrencyCode() != 'USD') {
-//
-//                                $itemTax = Mage::app()->getStore()->convertPrice($itemBaseTax);
-//
-//                            }
-//                            $item->setTaxAmount($itemTax);
-//                            $item->save();
-//                        }
-//                    }
-//                    $address->save();
-//                }
-            }
+
             Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD($tax);
             if(Mage::app()->getStore()->getCurrentCurrencyCode() != 'USD') {
 
@@ -514,6 +493,98 @@ class Pb_Pbgsp_Model_Observer {
         }
 
         return false;
+    }
+
+    public function createOrderAdminAfter($data) {
+        Pb_Pbgsp_Model_Util::log("createOrderAdminAfter");
+        $order = $data['order'];
+        $quote = $data['quote'];
+        /* @var Mage_Sales_Model_Order $order */
+        if($this->isPbOrder($order)) {
+            Pb_Pbgsp_Model_Util::log(" PB order");
+            try {
+
+
+            //$items = $order->getItems();
+                $items = $quote->getAllItems();
+                $address = $quote->getShippingAddress();
+            $domesticShippingAdress = $address->getName()."</br>".$address->getStreetFull().", ".$address->getCity()."</br> ".$address->getRegion().", ".$address->getCountry().",".$address->getPostcode()."</br> T:".$address->getTelephone();
+            $shipMethod = $quote->getShippingAddress()->getShippingMethod();
+
+            $shipMethod = substr($shipMethod,strlen("pbgsp_"));
+
+            $pbOrder = Pb_Pbgsp_Model_Api::createOrder($items,$shipMethod,$address);
+            if (!$pbOrder) {
+                Mage::throwException("Unable to create Pb order.");
+            }
+            Mage::getSingleton("customer/session")->setPbOrder($pbOrder);
+            $tax = $pbOrder['order']['totalImportation']['total']['value'];
+
+            if(Pb_Pbgsp_Model_Credentials::isFreeTaxEnabled())
+                $tax = 0;
+
+            Mage::getSingleton("customer/session")->setPbDutyAndTaxUSD($tax);
+            if(Mage::app()->getStore()->getCurrentCurrencyCode() != 'USD') {
+
+                $tax = Mage::app()->getStore()->convertPrice($tax);
+
+            }
+            Mage::getSingleton("customer/session")->setPbDutyAndTax($tax);
+
+            $orderNumber = Mage::getModel("pb_pbgsp/ordernumber");
+
+            $orderNumber->setCpOrderNumber($pbOrder["orderId"]);
+            $orderNumber->setHubId($pbOrder["shipToHub"]['hubId']);
+            $orderNumber->setHubStreet1($pbOrder["shipToHub"]['hubAddress']['street1']);
+            $orderNumber->setHubStreet2($pbOrder["shipToHub"]['hubAddress']['street2']);
+
+            $orderNumber->setHubProvinceOrState($pbOrder["shipToHub"]['hubAddress']['provinceOrState']);
+            $orderNumber->setHubCountry($pbOrder["shipToHub"]['hubAddress']['country']);
+            $orderNumber->setHubPostalCode($pbOrder["shipToHub"]['hubAddress']['postalOrZipCode']);
+            $orderNumber->setHubCity($pbOrder["shipToHub"]['hubAddress']['city']);
+            $orderNumber->setOriginalShippingAddress($domesticShippingAdress);
+            $orderNumber->save();
+            Mage::getSingleton("customer/session")->setPbOrderNumber($orderNumber);
+                $mageOrderNumber = $order->getIncrementId();
+                $orderNumber->setMageOrderNumber($mageOrderNumber);
+                Pb_Pbgsp_Model_Util::log("calling PB confirm order for $mageOrderNumber");
+                if (Pb_Pbgsp_Model_Api::confirmOrder($orderNumber->getCpOrderNumber(),$order)) {
+                    $orderNumber->setConfirmed(true);
+                    $orderNumber->setReferenced(true);
+                    $orderNumber->save();
+
+                    /* Update order shipping address in Magento
+                       Added by: Sudarshan
+                       Date: 25/09/2015
+
+                    */
+                    if(Pb_Pbgsp_Model_Credentials::isOverrideShippingAddressEnabled() == '1') {
+                        try{
+                            $shippingAddress = Mage::getModel('sales/order_address')->load($order->getShippingAddress()->getId());
+
+                            $shippingAddress
+                                ->setStreet(array($orderNumber->getHubStreet1(),$orderNumber->getHubStreet2()))
+                                ->setCity($orderNumber->getHubCity())
+                                ->setCountry_id($orderNumber->getHubCountry())
+                                ->setRegion($orderNumber->getHubProvinceOrState())
+                                ->setPostcode($orderNumber->getHubPostalCode())->save();
+                        }
+                        catch(Exception $e) {
+                            Pb_Pbgsp_Model_Util::log("Error updating shipping address in magento");
+                            Pb_Pbgsp_Model_Util::logException($e);
+                        }
+
+                    }
+
+                    Pb_Pbgsp_Model_Util::log(" $mageOrderNumber order is confirmed in PB");
+                }
+            }
+            catch(Exception $ex) {
+                Pb_Pbgsp_Model_Util::logException($ex);
+            }
+        }
+
+
     }
 }
 ?>

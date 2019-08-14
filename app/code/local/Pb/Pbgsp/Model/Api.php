@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.2)
- * Packaged:      2016-09-21T11:45:00+00:00
- * Last Modified: 2016-09-13T10:50:00+00:00
+ * Product:       Pb_Pbgsp (1.4.3)
+ * Packaged:      2016-12-06T09:30:00+00:00
+ * Last Modified: 2016-09-21T11:45:00+00:00
 
 
 
@@ -14,8 +14,9 @@
 class Pb_Pbgsp_Model_Api
 {
 
+    static $STORE_TOKENS = array();
 
-    public static function CallAPI($method, $url, $data = false,$isSecondCall=false)
+    public static function CallAPI($method, $url, $data = false,$attempts=0)
     {
         $curl = curl_init();
         $headers = array();
@@ -69,11 +70,18 @@ class Pb_Pbgsp_Model_Api
         {
             Pb_Pbgsp_Model_Util::log("Http Status: $status");
             Pb_Pbgsp_Model_Util::log("body : $result");
-            if($status == 401 && !$isSecondCall) {
+            Pb_Pbgsp_Model_Util::log("token_type". $token['token_type']);
+            Pb_Pbgsp_Model_Util::log("access_token". $token['access_token']);
+            //if($status == 401 && !$isSecondCall) {
+            if($status == 401 && $attempts < 5) {
                 //token expired regenerat it
+
                 Pb_Pbgsp_Model_Util::log("Regenerating token");
-                Mage::getSingleton("customer/session")->setPbToken(false);
-                self::CallAPI($method,$url,$data,true);
+                //Mage::getSingleton("customer/session")->setPbToken(false);
+                Mage::app()->getCache()->remove(trim(Pb_Pbgsp_Model_Credentials::getUsername()));
+                $attempts++;
+                curl_close($curl);
+                return self::CallAPI($method,$url,$data,$attempts);
             }
 			if($status == 404){
 				return $result;
@@ -87,11 +95,16 @@ class Pb_Pbgsp_Model_Api
     }
 
     public static function getToken() {
-        $token = Mage::getSingleton("customer/session")->getPbToken();
+        $token = null;
+        $username = trim(Pb_Pbgsp_Model_Credentials::getUsername());
+        //$token = Mage::getSingleton("customer/session")->getPbToken();
+        if (false !== ($data = Mage::app()->getCache()->load($username))) {
+            $token = unserialize($data);
+        }
         if(!$token) {
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_POST, 1);
-            $username = trim(Pb_Pbgsp_Model_Credentials::getUsername());
+
             $password = trim(Pb_Pbgsp_Model_Credentials::getPassword());
             curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
             curl_setopt($curl, CURLOPT_USERPWD, "$username:$password");
@@ -120,7 +133,10 @@ class Pb_Pbgsp_Model_Api
             curl_close($curl);
             $token = json_decode($body,true);
             $token['cookie'] = $cookies['cookie'];
-            Mage::getSingleton("customer/session")->setPbToken($token);
+            Pb_Pbgsp_Model_Util::log("Token regenerated:". $body);
+            //Mage::getSingleton("customer/session")->setPbToken($token);
+
+            Mage::app()->getCache()->save(serialize($token), $username);
         }
         return $token;
     }
@@ -143,7 +159,7 @@ class Pb_Pbgsp_Model_Api
             $ipaddress = '0.0.0.0';
         return $ipaddress;
     }
-    protected static function makeBasket($products, $address,$method='STANDARD')
+    protected static function makeBasket($products, $address,$method='STANDARD',$forCreateOrder=false)
     {
         $basketLines = array();
         $totalProducts = 0;
@@ -182,6 +198,7 @@ class Pb_Pbgsp_Model_Api
 						$_cat = Mage::getModel('catalog/category')->load($category_id) ;
 						$category_name[]= array("merchantCatRefId" =>$_cat->getId());
 					}
+				$category_name_rev = array_reverse ($category_name); 	
                 $shortDescription = Pb_Pbgsp_Model_Util::stripHtml($actualProduct -> getShortDescription());
                 $shortDescription = preg_replace("/[^A-Za-z0-9 .\-\+=;:\\(){}\[\]@?%$#]/",'',$shortDescription);
                 if (strlen($shortDescription) >= 2000) {
@@ -193,14 +210,59 @@ class Pb_Pbgsp_Model_Api
                     "name" => $product->getName(),
                     "shortDescription" => $shortDescription
                 ));
+                $commodity = array(
+                    'merchantComRefId' => $product->getSku()
+
+                );
+                if(Mage::getStoreConfig('carriers/pbgsp/seller_active')) {
+                    $commodity['descriptions'] = $arDescriptions;
+                    $commodity['commodityUrl'] = $actualProduct->getProductUrl();
+                    $commodity['categories'] = $category_name_rev;
+                }
+                if($actualProduct->getCountryOfManufacture()) {
+                    $commodity['coo'] = $actualProduct->getCountryOfManufacture();
+                }
+                if($actualProduct->getWeight() > 0) {
+                    $commoditySize = array(
+                        'weightUnit' => 'lb',
+                        'distanceUnit'=>'in',
+                        'weight'=> $actualProduct->getWeight(),
+
+                    );
+                    if($actualProduct->getPbPbgspCommodityHeight() && $actualProduct->getPbPbgspCommodityHeight() > 0) {
+                        $commoditySize['height'] = $actualProduct->getPbPbgspCommodityHeight();
+                    }
+                    if($actualProduct->getPbPbgspCommodityWidth() && $actualProduct->getPbPbgspCommodityWidth() > 0) {
+                        $commoditySize['width'] = $actualProduct->getPbPbgspCommodityWidth();
+                    }
+                    if($actualProduct->getPbPbgspCommodityLength() && $actualProduct->getPbPbgspCommodityLength() > 0) {
+                        $commoditySize['length'] = $actualProduct->getPbPbgspCommodityLength();
+                    }
+                    $commodity['commoditySize'] = $commoditySize;
+                }
+
+
+                if($actualProduct->getPbPbgspPackageWeight() && $actualProduct->getPbPbgspPackageWeight() > 0 ) {
+                    $shippingSize = array(
+                        'weightUnit' => 'lb',
+                        'distanceUnit'=>'in',
+                        'weight'=> $actualProduct->getPbPbgspPackageWeight(),
+
+                    );
+                    if($actualProduct->getPbPbgspPackageHeight() && $actualProduct->getPbPbgspPackageHeight() > 0) {
+                        $shippingSize['height'] = $actualProduct->getPbPbgspPackageHeight();
+                    }
+                    if($actualProduct->getPbPbgspPackageWidth() && $actualProduct->getPbPbgspPackageWidth() > 0) {
+                        $shippingSize['width'] = $actualProduct->getPbPbgspPackageWidth();
+                    }
+                    if($actualProduct->getPbPbgspPackageLength() && $actualProduct->getPbPbgspPackageLength() > 0) {
+                        $shippingSize['length'] = $actualProduct->getPbPbgspPackageLength();
+                    }
+                    $commodity['shippingSize'] = $shippingSize;
+                }
                 array_push($basketLines, array(
                                               "lineId" => $product->getSku(),
-                                              "commodity" => array(
-                                              					'merchantComRefId' => $product->getSku(),
-                                              						"descriptions" =>$arDescriptions,
-																	  "commodityUrl" => $actualProduct->getProductUrl(),
-																	  "categories" => $category_name,
-                                              					),
+                                              "commodity" => $commodity,
                                               "unitPrice" => array('price' => array('value' => $price)),
                                               "quantity" => intval($product->getQty())
 
@@ -239,6 +301,9 @@ class Pb_Pbgsp_Model_Api
         }
         if(!$email)
             $email = "kamranattari@gmail.com";
+
+        if($email == 'email@email.com' && $forCreateOrder)
+            $email = Mage::getSingleton('customer/session')->getCustomer()->getEmail();//set correct email address of customer
 
         $familyName = $address->getLastname(); //when it comes from paypal express, lastname is null, Kamran, Bigpixel Studio,
         if(!$familyName)
@@ -365,7 +430,21 @@ class Pb_Pbgsp_Model_Api
 		}
 		
 		
-										 
+		$returnAddress = array(
+            'street1' => Pb_Pbgsp_Model_Credentials::getReturnAddressStreet1(),
+            'city' => Pb_Pbgsp_Model_Credentials::getReturnAddressCity(),
+            'provinceOrState' => Pb_Pbgsp_Model_Credentials::getReturnAddressState(),
+            'country' => Pb_Pbgsp_Model_Credentials::getReturnAddressCountry(),
+            'postalOrZipCode' => Pb_Pbgsp_Model_Credentials::getReturnAddressZip()
+        );
+
+//        if(Mage::getStoreConfig('carriers/pbgsp/seller_active')) {
+//            $returnAddress['street1'] = Mage::getStoreConfig('carriers/pbgsp/seller_street_address');
+//            $returnAddress['city'] = Mage::getStoreConfig('carriers/pbgsp/seller_city');
+//            $returnAddress['provinceOrState'] = Mage::getStoreConfig('carriers/pbgsp/seller_province_state');
+//            $returnAddress['postalOrZipCode'] = Mage::getStoreConfig('carriers/pbgsp/seller_zip');
+//            $returnAddress['country'] = Mage::getStoreConfig('carriers/pbgsp/seller_country');
+//        }
         $requestBody = array(
             'merchantOrderNumber' => $cpOrderNumber,
             'parcelIdentificationNumber' => $number,
@@ -382,13 +461,7 @@ class Pb_Pbgsp_Model_Api
                 'postalOrZipCode' => '85123'
             ),
             'returnDetails' => array(
-                'returnAddress' => array(
-                    'street1' => Pb_Pbgsp_Model_Credentials::getReturnAddressStreet1(),
-                    'city' => Pb_Pbgsp_Model_Credentials::getReturnAddressCity(),
-                    'provinceOrState' => Pb_Pbgsp_Model_Credentials::getReturnAddressState(),
-                    'country' => Pb_Pbgsp_Model_Credentials::getReturnAddressCountry(),
-                    'postalOrZipCode' => Pb_Pbgsp_Model_Credentials::getReturnAddressZip()
-                ),
+                'returnAddress' => $returnAddress,
                 'contactInformation' => array(
                     'familyName' => $address->getLastname(),
                     'givenName' => $address->getFirstname(),
@@ -403,7 +476,7 @@ class Pb_Pbgsp_Model_Api
             ),
             'size' => array(
                 'weight' => $totalWeight,
-                'weightUnit' => 'LB'
+                'weightUnit' => 'lb'
             )
         );
         $url = Pb_Pbgsp_Model_Credentials::getOrderMgmtAPIUrl().'/orders/'.
@@ -430,7 +503,7 @@ class Pb_Pbgsp_Model_Api
     public static function getQuote($products,$address)
     {
 
-        Pb_Pbgsp_Model_Util::log('Getting quote from clearpath');
+        Pb_Pbgsp_Model_Util::log('Getting quote from Pitney Bowes');
         $basket = Pb_Pbgsp_Model_Api::makeBasket($products, $address);
 
             $url = self::getCheckoutUrl('quotes');
@@ -451,7 +524,7 @@ class Pb_Pbgsp_Model_Api
 
         try {
             Pb_Pbgsp_Model_Util::log('Creating order in clearpath');
-            $basket = Pb_Pbgsp_Model_Api::makeBasket($products, $address,$method);
+            $basket = Pb_Pbgsp_Model_Api::makeBasket($products, $address,$method,true);
 
                $url = self::getCheckoutUrl('orders');
             $response = self::CallAPI('POST',$url,$basket);
@@ -501,6 +574,7 @@ class Pb_Pbgsp_Model_Api
 			$cancelOrderResponse = json_decode($response,true);
 			Pb_Pbgsp_Model_Util::log('Response of cancel order');
 			Pb_Pbgsp_Model_Util::log($cancelOrderResponse);
+            $errorMessage = '';
 			if(array_key_exists('errors',$cancelOrderResponse)) {
 				Pb_Pbgsp_Model_Util::log("Error generating cancelling order");
 				Pb_Pbgsp_Model_Util::log($cancelOrderResponse);

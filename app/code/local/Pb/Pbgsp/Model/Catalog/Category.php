@@ -1,8 +1,8 @@
 <?php
 /**
- * Product:       Pb_Pbgsp (1.4.2)
- * Packaged:      2016-09-21T11:45:00+00:00
- * Last Modified: 2016-09-13T10:50:00+00:00
+ * Product:       Pb_Pbgsp (1.4.3)
+ * Packaged:      2016-12-06T09:30:00+00:00
+ * Last Modified: 2016-09-21T11:45:00+00:00
  * File:          app/code/local/Pb/Pbgsp/Model/Catalog/Category.php
  * Copyright:     Copyright (c) 2016 Pitney Bowes <info@pb.com> / All rights reserved.
  */
@@ -94,40 +94,8 @@ class Pb_Pbgsp_Model_Catalog_Category {
 
 	}
 
-	// This is done via API
-	public function upload() {
-		echo "Uploading category: ".$this->category->getName()."... ";
-		if (Pb_Pbgsp_Model_Api::addCategory($this)) {
-			echo "ok";
-		} else {
-			echo "failed!";
-		}
-		echo "<br/>";
-		
-		$products = $this->category->getProductCollection();
-		// TODO: Products that are part of multiple categories will be uploaded 
-		// multiple times.
-		foreach ($products as $product) {
-			$clearPathProduct = new Pb_Pbgsp_Model_Catalog_Product($product);
-			echo "Uploading product: ".$clearPathProduct->getName()."... ";
-			if (Pb_Pbgsp_Model_Api::addCommodity($clearPathProduct)) {
-				echo "ok";
-			} else {
-				echo "failed!";
-			}
-			echo "<br/>";
-		}
-		
-		
-		$children = $this->category->getChildrenCategories();
-		
-		// TODO: this code will run out of memory if there are a lot of categories.... 
-		// Need to convert the recursive call to a loop at some point.
-		foreach ($children as $child) {
-			$childCategory = new Pb_Pbgsp_Model_Catalog_Category($child);
-			$childCategory->upload();
-		}
-	}
+
+
 	
 	// This fuction starts at the Magento root and its not very efficient... see isRoot for proper implementation. 
 	// This function is only used by the API upload.
