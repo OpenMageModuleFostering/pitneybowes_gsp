@@ -1,7 +1,7 @@
 {
-    "name": "OpenMageModuleFostering\/pitneybowes_gsp",
+    "name": "openmage-module-fostering\/pitneybowes_gsp",
     "type": "magento-module",
-    "license": "Open-Software-License-(OSL)",
+    "license": "OSL-3.0",
     "homepage": "",
     "description": "Pitney Bowes Global Shipping Platform (GSP) simplifies cross-border transactions and enables global ecommerce!",
     "authors": [
